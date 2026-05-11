@@ -17,7 +17,8 @@ import { ITEM_STATUSES, STATUS_LABELS } from "@/lib/items/types";
 import { Column } from "./Column";
 import { ItemModal } from "./ItemModal";
 import { LoginModal } from "./LoginModal";
-import { Spinner } from "./Spinner";
+import { SkeletonCard } from "./SkeletonCard";
+import { SyncingPill } from "./SyncingPill";
 import { UserChip } from "./UserChip";
 
 function groupByStatus(items: Item[]): Record<ItemStatus, Item[]> {
@@ -88,6 +89,9 @@ export function Board() {
   const grouped = useMemo(() => groupByStatus(filtered), [filtered]);
   // Reorder works against the raw items list — we always send the full ordering for affected columns.
   const groupedAll = useMemo(() => groupByStatus(items), [items]);
+
+  const isFirstLoad = loading && items.length === 0;
+  const isBackgroundSync = loading && items.length > 0;
 
   const [draggingId, setDraggingId] = useState<string | null>(null);
 
@@ -345,44 +349,65 @@ export function Board() {
         })}
       </div>
 
-      <DndContext
-        sensors={sensors}
-        onDragStart={onDragStart}
-        onDragOver={onDragOver}
-        onDragEnd={onDragEnd}
-        onDragCancel={() => setDraggingId(null)}
-      >
+      {isFirstLoad ? (
         <div className="flex flex-1 flex-col gap-3 md:grid md:grid-cols-3">
           {ITEM_STATUSES.map((status) => (
             <div
               key={status}
               className={`${status === mobileTab ? "flex" : "hidden"} flex-1 flex-col md:flex`}
             >
-              <Column
-                status={status}
-                items={grouped[status]}
-                onAdd={(s) => {
-                  setEditing(null);
-                  setAdding(s);
-                }}
-                onEdit={(it) => {
-                  setAdding(null);
-                  setEditing(it);
-                }}
-              />
+              <div className="flex min-w-0 flex-1 flex-col rounded-xl bg-zinc-100 p-3 dark:bg-zinc-900/50">
+                <div className="mb-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                      {STATUS_LABELS[status]}
+                    </h3>
+                  </div>
+                </div>
+                <div className="flex flex-1 flex-col gap-2 rounded-md p-1">
+                  <SkeletonCard />
+                  <SkeletonCard lines={1} />
+                  <SkeletonCard />
+                </div>
+              </div>
             </div>
           ))}
         </div>
-        {/* draggingId is read but no overlay — keep value to avoid unused-var lint */}
-        <span className="hidden">{draggingId}</span>
-      </DndContext>
-
-      {loading && (
-        <div className="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-          <Spinner className="h-3.5 w-3.5" />
-          <span>Loading…</span>
-        </div>
+      ) : (
+        <DndContext
+          sensors={sensors}
+          onDragStart={onDragStart}
+          onDragOver={onDragOver}
+          onDragEnd={onDragEnd}
+          onDragCancel={() => setDraggingId(null)}
+        >
+          <div className="flex flex-1 flex-col gap-3 md:grid md:grid-cols-3">
+            {ITEM_STATUSES.map((status) => (
+              <div
+                key={status}
+                className={`${status === mobileTab ? "flex" : "hidden"} flex-1 flex-col md:flex`}
+              >
+                <Column
+                  status={status}
+                  items={grouped[status]}
+                  onAdd={(s) => {
+                    setEditing(null);
+                    setAdding(s);
+                  }}
+                  onEdit={(it) => {
+                    setAdding(null);
+                    setEditing(it);
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+          {/* draggingId is read but no overlay — keep value to avoid unused-var lint */}
+          <span className="hidden">{draggingId}</span>
+        </DndContext>
       )}
+
+      {isBackgroundSync && <SyncingPill />}
 
       <ItemModal
         open={editing !== null || adding !== null}
