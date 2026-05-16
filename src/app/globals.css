@@ -1,8 +1,14 @@
 @import "tailwindcss";
 
+/* Class-based dark mode: `dark:` utilities apply under a `.dark` ancestor
+   (toggled on <html> by the theme script/provider) instead of the
+   prefers-color-scheme media query. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  color-scheme: light;
 }
 
 @theme inline {
@@ -12,11 +18,10 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  color-scheme: dark;
 }
 
 body {

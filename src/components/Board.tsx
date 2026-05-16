@@ -19,6 +19,7 @@ import { ItemModal } from "./ItemModal";
 import { LoginModal } from "./LoginModal";
 import { SkeletonCard } from "./SkeletonCard";
 import { SyncingPill } from "./SyncingPill";
+import { ThemeToggle } from "./ThemeToggle";
 import { UserChip } from "./UserChip";
 
 function groupByStatus(items: Item[]): Record<ItemStatus, Item[]> {
@@ -197,6 +198,7 @@ export function Board() {
               </svg>
               New item
             </button>
+            <ThemeToggle />
             <UserChip onSignInClick={() => setLoginOpen(true)} />
           </div>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
