@@ -3,56 +3,40 @@ import { NextResponse } from "next/server";
 import { db } from "@/db/client";
 import { items } from "@/db/schema";
 import { dbItemToItem } from "@/lib/items/serialize";
-import type { ItemStatus } from "@/lib/items/types";
-import { ITEM_STATUSES } from "@/lib/items/types";
+import { checkOrigin } from "@/lib/security";
 import { getCurrentUserId } from "@/lib/supabase/server";
+import { updateItemSchema } from "@/lib/validation";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-type PatchBody = {
-  title?: unknown;
-  status?: unknown;
-  position?: unknown;
-  dueAt?: unknown;
-  tags?: unknown;
-  detail?: unknown;
-  note?: unknown;
-};
-
 export async function PATCH(request: Request, ctx: RouteContext) {
+  const originError = checkOrigin(request);
+  if (originError) return originError;
+
   const userId = await getCurrentUserId();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   const { id } = await ctx.params;
-  const body = (await request.json()) as PatchBody;
+
+  const raw = await request.json().catch(() => null);
+  const parsed = updateItemSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid request", issues: parsed.error.issues },
+      { status: 400 },
+    );
+  }
+  const data = parsed.data;
 
   const patch: Record<string, unknown> = { updatedAt: new Date() };
-  if (typeof body.title === "string") {
-    const t = body.title.trim();
-    if (!t) {
-      return NextResponse.json({ error: "Title is required" }, { status: 400 });
-    }
-    patch.title = t;
-  }
-  if (body.status !== undefined) {
-    if (!ITEM_STATUSES.includes(body.status as ItemStatus)) {
-      return NextResponse.json({ error: "Status is required" }, { status: 400 });
-    }
-    patch.status = body.status;
-  }
-  if (typeof body.position === "number") patch.position = body.position;
-  if (body.dueAt === null) patch.dueAt = null;
-  else if (typeof body.dueAt === "string" && body.dueAt) patch.dueAt = new Date(body.dueAt);
-  if (Array.isArray(body.tags))
-    patch.tags = body.tags.filter((t): t is string => typeof t === "string");
-  if (typeof body.detail === "string") {
-    if (!body.detail.trim()) {
-      return NextResponse.json({ error: "Detail is required" }, { status: 400 });
-    }
-    patch.detail = body.detail;
-  }
-  if (typeof body.note === "string") patch.note = body.note;
+  if (data.title !== undefined) patch.title = data.title;
+  if (data.status !== undefined) patch.status = data.status;
+  if (data.position !== undefined) patch.position = data.position;
+  if (data.dueAt !== undefined) patch.dueAt = data.dueAt;
+  if (data.tags !== undefined) patch.tags = data.tags;
+  if (data.detail !== undefined) patch.detail = data.detail;
+  if (data.note !== undefined) patch.note = data.note;
 
   const [updated] = await db
     .update(items)
@@ -66,7 +50,10 @@ export async function PATCH(request: Request, ctx: RouteContext) {
   return NextResponse.json({ item: dbItemToItem(updated) });
 }
 
-export async function DELETE(_request: Request, ctx: RouteContext) {
+export async function DELETE(request: Request, ctx: RouteContext) {
+  const originError = checkOrigin(request);
+  if (originError) return originError;
+
   const userId = await getCurrentUserId();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

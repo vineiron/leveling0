@@ -3,9 +3,9 @@ import { NextResponse } from "next/server";
 import { db } from "@/db/client";
 import { items } from "@/db/schema";
 import { dbItemToItem } from "@/lib/items/serialize";
-import type { ItemStatus } from "@/lib/items/types";
-import { ITEM_STATUSES } from "@/lib/items/types";
+import { checkOrigin } from "@/lib/security";
 import { getCurrentUserId } from "@/lib/supabase/server";
+import { createItemSchema } from "@/lib/validation";
 
 export async function GET() {
   const userId = await getCurrentUserId();
@@ -20,41 +20,24 @@ export async function GET() {
   return NextResponse.json({ items: rows.map(dbItemToItem) });
 }
 
-type PostBody = {
-  title?: unknown;
-  status?: unknown;
-  dueAt?: unknown;
-  tags?: unknown;
-  detail?: unknown;
-  note?: unknown;
-};
-
 export async function POST(request: Request) {
+  const originError = checkOrigin(request);
+  if (originError) return originError;
+
   const userId = await getCurrentUserId();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = (await request.json()) as PostBody;
-  const title = typeof body.title === "string" ? body.title.trim() : "";
-  if (!title) {
-    return NextResponse.json({ error: "Title is required" }, { status: 400 });
+  const raw = await request.json().catch(() => null);
+  const parsed = createItemSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid request", issues: parsed.error.issues },
+      { status: 400 },
+    );
   }
-  if (!ITEM_STATUSES.includes(body.status as ItemStatus)) {
-    return NextResponse.json({ error: "Status is required" }, { status: 400 });
-  }
-  const status = body.status as ItemStatus;
-  const detail = typeof body.detail === "string" ? body.detail : "";
-  if (!detail.trim()) {
-    return NextResponse.json({ error: "Detail is required" }, { status: 400 });
-  }
-  const dueAt =
-    typeof body.dueAt === "string" && body.dueAt ? new Date(body.dueAt) : null;
-  const tags =
-    Array.isArray(body.tags)
-      ? body.tags.filter((t): t is string => typeof t === "string" && t.length > 0)
-      : [];
-  const note = typeof body.note === "string" ? body.note : "";
+  const data = parsed.data;
 
   const [{ maxPos }] = await db
     .select({ maxPos: max(items.position) })
@@ -65,13 +48,13 @@ export async function POST(request: Request) {
     .insert(items)
     .values({
       userId,
-      status,
+      status: data.status,
       position: (maxPos ?? -1) + 1,
-      title,
-      dueAt,
-      tags,
-      detail,
-      note,
+      title: data.title,
+      dueAt: data.dueAt,
+      tags: data.tags,
+      detail: data.detail,
+      note: data.note,
     })
     .returning();
 

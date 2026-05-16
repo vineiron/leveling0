@@ -1,35 +1,33 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db/client";
-import { items } from "@/db/schema";
 import type { ItemStatus } from "@/lib/items/types";
-import { ITEM_STATUSES } from "@/lib/items/types";
+import { checkOrigin } from "@/lib/security";
 import { getCurrentUserId } from "@/lib/supabase/server";
-
-type ReorderBody = {
-  groups?: Array<{ status?: unknown; ids?: unknown }>;
-};
+import { reorderSchema } from "@/lib/validation";
 
 export async function POST(request: Request) {
+  const originError = checkOrigin(request);
+  if (originError) return originError;
+
   const userId = await getCurrentUserId();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const body = (await request.json()) as ReorderBody;
-  if (!Array.isArray(body.groups)) {
-    return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+
+  const raw = await request.json().catch(() => null);
+  const parsed = reorderSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid request", issues: parsed.error.issues },
+      { status: 400 },
+    );
   }
 
-  const allIds: string[] = [];
   const updates: Array<{ id: string; status: ItemStatus; position: number }> = [];
-  for (const group of body.groups) {
-    const status = group.status as ItemStatus;
-    if (!ITEM_STATUSES.includes(status)) continue;
-    if (!Array.isArray(group.ids)) continue;
-    group.ids.forEach((id, position) => {
-      if (typeof id !== "string") return;
-      allIds.push(id);
-      updates.push({ id, status, position });
+  for (const group of parsed.data.groups) {
+    group.ids.forEach((id: string, position: number) => {
+      updates.push({ id, status: group.status, position });
     });
   }
 
@@ -37,21 +35,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   }
 
-  await db.transaction(async (tx) => {
-    const owned = await tx
-      .select({ id: items.id })
-      .from(items)
-      .where(and(eq(items.userId, userId), inArray(items.id, allIds)));
-    const ownedSet = new Set(owned.map((r) => r.id));
-    const now = new Date();
-    for (const u of updates) {
-      if (!ownedSet.has(u.id)) continue;
-      await tx
-        .update(items)
-        .set({ status: u.status, position: u.position, updatedAt: now })
-        .where(and(eq(items.id, u.id), eq(items.userId, userId)));
-    }
-  });
+  // Single bulk UPDATE driven by a VALUES join. The WHERE on user_id ensures
+  // rows not owned by the caller are silently skipped (same behavior as the
+  // prior per-row implementation, but one round-trip instead of N). Every row
+  // is cast explicitly so Postgres never has to infer a bind-param's type.
+  const valuesParts = updates.map(
+    (u) => sql`(${u.id}::uuid, ${u.status}::item_status, ${u.position}::int)`,
+  );
+
+  await db.execute(sql`
+    UPDATE items
+    SET status = data.status,
+        position = data.position,
+        updated_at = NOW()
+    FROM (VALUES ${sql.join(valuesParts, sql`, `)}) AS data(id, status, position)
+    WHERE items.id = data.id AND items.user_id = ${userId}::uuid
+  `);
 
   return NextResponse.json({ ok: true });
 }

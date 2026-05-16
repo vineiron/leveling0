@@ -5,6 +5,8 @@ import { useAuth } from "@/lib/auth/AuthProvider";
 import { apiStore, localStore, type ItemStore } from "./storage";
 import type { Item, ItemDraft, ItemStatus } from "./types";
 
+type ReorderGroups = Array<{ status: ItemStatus; ids: string[] }>;
+
 export type UseItems = {
   items: Item[];
   loading: boolean;
@@ -13,7 +15,8 @@ export type UseItems = {
   create: (draft: ItemDraft) => Promise<void>;
   update: (id: string, patch: Partial<ItemDraft>) => Promise<void>;
   remove: (id: string) => Promise<void>;
-  reorder: (groups: Array<{ status: ItemStatus; ids: string[] }>) => Promise<void>;
+  previewReorder: (groups: ReorderGroups) => void;
+  commitReorder: (groups: ReorderGroups) => Promise<void>;
   mode: "local" | "remote";
 };
 
@@ -70,20 +73,25 @@ export function useItems(): UseItems {
     [store],
   );
 
-  const reorder = useCallback(
-    async (groups: Array<{ status: ItemStatus; ids: string[] }>) => {
-      // Optimistic local apply.
-      setItems((prev) => {
-        const map = new Map(prev.map((i) => [i.id, i]));
-        for (const g of groups) {
-          g.ids.forEach((id, position) => {
-            const it = map.get(id);
-            if (!it) return;
-            map.set(id, { ...it, status: g.status, position });
-          });
-        }
-        return [...map.values()];
-      });
+  // Local-only optimistic apply. Used during drag-over to drive visual feedback
+  // without paying for a network round-trip on every hover tick.
+  const previewReorder = useCallback((groups: ReorderGroups) => {
+    setItems((prev) => {
+      const map = new Map(prev.map((i) => [i.id, i]));
+      for (const g of groups) {
+        g.ids.forEach((id, position) => {
+          const it = map.get(id);
+          if (!it) return;
+          map.set(id, { ...it, status: g.status, position });
+        });
+      }
+      return [...map.values()];
+    });
+  }, []);
+
+  // Persist the latest reorder state. On failure we refetch to resync the UI.
+  const commitReorder = useCallback(
+    async (groups: ReorderGroups) => {
       try {
         await store.reorder(groups);
       } catch (e) {
@@ -95,7 +103,30 @@ export function useItems(): UseItems {
   );
 
   return useMemo(
-    () => ({ items, loading: loading || authLoading, error, refresh, create, update, remove, reorder, mode }),
-    [items, loading, authLoading, error, refresh, create, update, remove, reorder, mode],
+    () => ({
+      items,
+      loading: loading || authLoading,
+      error,
+      refresh,
+      create,
+      update,
+      remove,
+      previewReorder,
+      commitReorder,
+      mode,
+    }),
+    [
+      items,
+      loading,
+      authLoading,
+      error,
+      refresh,
+      create,
+      update,
+      remove,
+      previewReorder,
+      commitReorder,
+      mode,
+    ],
   );
 }

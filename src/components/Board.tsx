@@ -29,7 +29,8 @@ function groupByStatus(items: Item[]): Record<ItemStatus, Item[]> {
 }
 
 export function Board() {
-  const { items, loading, error, create, update, remove, reorder, mode } = useItems();
+  const { items, loading, error, create, update, remove, previewReorder, commitReorder, mode } =
+    useItems();
 
   const [search, setSearch] = useState("");
   const [activeTags, setActiveTags] = useState<string[]>([]);
@@ -93,16 +94,26 @@ export function Board() {
   const isFirstLoad = loading && items.length === 0;
   const isBackgroundSync = loading && items.length > 0;
 
-  const [draggingId, setDraggingId] = useState<string | null>(null);
+  // Pending reorder state accumulated across onDragOver, committed once on drop.
+  const pendingGroupsRef = useRef<Map<ItemStatus, string[]>>(new Map());
+
+  function isColumnId(id: string) {
+    return id.startsWith("column:");
+  }
 
   function findContainer(id: string): ItemStatus | null {
-    if (id.startsWith("column:")) return id.slice("column:".length) as ItemStatus;
+    if (isColumnId(id)) return id.slice("column:".length) as ItemStatus;
     const it = items.find((i) => i.id === id);
     return it ? it.status : null;
   }
 
-  function onDragStart(e: DragStartEvent) {
-    setDraggingId(String(e.active.id));
+  function applyPreview(groups: Array<{ status: ItemStatus; ids: string[] }>) {
+    for (const g of groups) pendingGroupsRef.current.set(g.status, g.ids);
+    previewReorder(groups);
+  }
+
+  function onDragStart(_e: DragStartEvent) {
+    pendingGroupsRef.current.clear();
   }
 
   function onDragOver(e: DragOverEvent) {
@@ -114,48 +125,52 @@ export function Board() {
     const fromStatus = findContainer(activeId);
     const toStatus = findContainer(overId);
     if (!fromStatus || !toStatus || fromStatus === toStatus) return;
-    // Cross-column hover: optimistic move now so UX feels right; full commit happens on drop.
     const moving = items.find((i) => i.id === activeId);
     if (!moving) return;
     const targetCol = groupedAll[toStatus].filter((i) => i.id !== activeId);
-    const targetIds =
-      overId.startsWith("column:")
-        ? [...targetCol.map((i) => i.id), activeId]
-        : (() => {
-            const idx = targetCol.findIndex((i) => i.id === overId);
-            const insertAt = idx === -1 ? targetCol.length : idx;
-            const ids = targetCol.map((i) => i.id);
-            ids.splice(insertAt, 0, activeId);
-            return ids;
-          })();
+    const targetIds = isColumnId(overId)
+      ? [...targetCol.map((i) => i.id), activeId]
+      : (() => {
+          const idx = targetCol.findIndex((i) => i.id === overId);
+          const insertAt = idx === -1 ? targetCol.length : idx;
+          const ids = targetCol.map((i) => i.id);
+          ids.splice(insertAt, 0, activeId);
+          return ids;
+        })();
     const fromIds = groupedAll[fromStatus].filter((i) => i.id !== activeId).map((i) => i.id);
-    reorder([
+    applyPreview([
       { status: fromStatus, ids: fromIds },
       { status: toStatus, ids: targetIds },
     ]);
   }
 
   function onDragEnd(e: DragEndEvent) {
-    setDraggingId(null);
     const { active, over } = e;
-    if (!over) return;
-    const activeId = String(active.id);
-    const overId = String(over.id);
-    const fromStatus = findContainer(activeId);
-    const toStatus = findContainer(overId);
-    if (!fromStatus || !toStatus) return;
+    if (over) {
+      const activeId = String(active.id);
+      const overId = String(over.id);
+      const fromStatus = findContainer(activeId);
+      const toStatus = findContainer(overId);
 
-    if (fromStatus === toStatus) {
-      const ids = groupedAll[fromStatus].map((i) => i.id);
-      const fromIdx = ids.indexOf(activeId);
-      const toIdx = overId.startsWith("column:")
-        ? ids.length - 1
-        : ids.indexOf(overId);
-      if (fromIdx === -1 || toIdx === -1 || fromIdx === toIdx) return;
-      const next = arrayMove(ids, fromIdx, toIdx);
-      reorder([{ status: fromStatus, ids: next }]);
+      if (fromStatus && toStatus && fromStatus === toStatus) {
+        const ids = groupedAll[fromStatus].map((i) => i.id);
+        const fromIdx = ids.indexOf(activeId);
+        const toIdx = isColumnId(overId) ? ids.length - 1 : ids.indexOf(overId);
+        if (fromIdx !== -1 && toIdx !== -1 && fromIdx !== toIdx) {
+          const next = arrayMove(ids, fromIdx, toIdx);
+          applyPreview([{ status: fromStatus, ids: next }]);
+        }
+      }
     }
-    // Cross-column case was already committed in onDragOver.
+
+    if (pendingGroupsRef.current.size > 0) {
+      const groups = [...pendingGroupsRef.current.entries()].map(([status, ids]) => ({
+        status,
+        ids,
+      }));
+      pendingGroupsRef.current.clear();
+      void commitReorder(groups);
+    }
   }
 
   async function handleSubmit(draft: Parameters<typeof create>[0]) {
@@ -379,7 +394,9 @@ export function Board() {
           onDragStart={onDragStart}
           onDragOver={onDragOver}
           onDragEnd={onDragEnd}
-          onDragCancel={() => setDraggingId(null)}
+          onDragCancel={() => {
+            pendingGroupsRef.current.clear();
+          }}
         >
           <div className="flex flex-1 flex-col gap-3 md:grid md:grid-cols-3">
             {ITEM_STATUSES.map((status) => (
@@ -402,8 +419,6 @@ export function Board() {
               </div>
             ))}
           </div>
-          {/* draggingId is read but no overlay — keep value to avoid unused-var lint */}
-          <span className="hidden">{draggingId}</span>
         </DndContext>
       )}
 
