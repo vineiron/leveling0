@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ApiError } from "@/lib/items/errors";
 import type { Item, ItemDraft, ItemStatus } from "@/lib/items/types";
 import { ITEM_STATUSES, STATUS_LABELS } from "@/lib/items/types";
 import { DueDateField } from "./DueDateField";
@@ -79,7 +80,7 @@ export function ItemModal({
   const [detail, setDetail] = useState("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<string[]>([]);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [restoredAt, setRestoredAt] = useState<number | null>(null);
 
@@ -145,7 +146,7 @@ export function ItemModal({
     }
 
     skipNextSaveRef.current = true;
-    setError(null);
+    setErrors([]);
     setConfirmDeleteOpen(false);
   }, [open, draftKey, baseValues]);
 
@@ -186,19 +187,19 @@ export function ItemModal({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim()) {
-      setError("Title is required");
+      setErrors(["Title is required."]);
       return;
     }
     if (!ITEM_STATUSES.includes(status)) {
-      setError("Status is required");
+      setErrors(["Status is required."]);
       return;
     }
     if (!detail.trim()) {
-      setError("Detail is required");
+      setErrors(["Detail is required."]);
       return;
     }
     setBusy(true);
-    setError(null);
+    setErrors([]);
     try {
       await onSubmit({
         title: title.trim(),
@@ -212,7 +213,11 @@ export function ItemModal({
       setRestoredAt(null);
       if (!initial) onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setErrors(
+        err instanceof ApiError
+          ? err.messages
+          : [err instanceof Error ? err.message : String(err)],
+      );
     } finally {
       setBusy(false);
     }
@@ -228,7 +233,11 @@ export function ItemModal({
       setConfirmDeleteOpen(false);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setErrors(
+        err instanceof ApiError
+          ? err.messages
+          : [err instanceof Error ? err.message : String(err)],
+      );
     } finally {
       setBusy(false);
     }
@@ -326,7 +335,25 @@ export function ItemModal({
           </div>
         </div>
 
-        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+        {errors.length > 0 && (
+          <div
+            role="alert"
+            className="max-h-32 overflow-auto rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
+          >
+            {errors.length === 1 ? (
+              <p>{errors[0]}</p>
+            ) : (
+              <>
+                <p className="mb-1 font-medium">Please fix the following:</p>
+                <ul className="list-disc space-y-0.5 pl-5">
+                  {errors.map((m, i) => (
+                    <li key={`${i}-${m}`}>{m}</li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+        )}
 
         <div className="mt-2 flex items-center justify-between gap-2">
           <div>

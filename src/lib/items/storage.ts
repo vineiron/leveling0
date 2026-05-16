@@ -1,3 +1,4 @@
+import { ApiError, toFriendlyMessages } from "./errors";
 import type { Item, ItemDraft, ItemStatus } from "./types";
 
 const LS_KEY = "leveling0:items:v1";
@@ -100,8 +101,18 @@ export const localStore: ItemStore = {
 
 async function jsonOrThrow(res: Response) {
   if (!res.ok) {
-    const msg = await res.text().catch(() => res.statusText);
-    throw new Error(msg || `Request failed: ${res.status}`);
+    const text = await res.text().catch(() => "");
+    let body: unknown = null;
+    try {
+      body = text ? JSON.parse(text) : null;
+    } catch {
+      body = null;
+    }
+    const messages =
+      body !== null
+        ? toFriendlyMessages(body, res.status)
+        : [text || `Request failed (${res.status}).`];
+    throw new ApiError(messages, res.status);
   }
   return res.json();
 }
