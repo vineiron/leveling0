@@ -8,7 +8,7 @@ import { Spinner } from "./Spinner";
 
 type Props = { open: boolean; onClose: () => void };
 
-export function LoginModal({ open, onClose }: Props) {
+export function SignInModal({ open, onClose }: Props) {
   const { signInWithGoogle } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);

@@ -17,8 +17,8 @@ import { useQuests } from "@/lib/quests/useQuests";
 import { FlameIcon } from "./BrandMark";
 import { Column } from "./Column";
 import { CommandPalette } from "./CommandPalette";
-import { LoginModal } from "./LoginModal";
 import { QuestModal } from "./QuestModal";
+import { SignInModal } from "./SignInModal";
 import { SkeletonCard } from "./SkeletonCard";
 import { StatusIcon } from "./StatusIcon";
 import { SyncingPill } from "./SyncingPill";
@@ -54,7 +54,7 @@ export function Board() {
   const [activeTags, setActiveTags] = useState<string[]>([]);
   const [editing, setEditing] = useState<Quest | null>(null);
   const [adding, setAdding] = useState<QuestStatus | null>(null);
-  const [loginOpen, setLoginOpen] = useState(false);
+  const [signInOpen, setSignInOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState<QuestStatus>("backlog");
 
@@ -230,7 +230,7 @@ export function Board() {
         onActiveTagsChange={setActiveTags}
         onNewQuest={() => openCreate(mobileTab)}
         onOpenPalette={() => setPaletteOpen(true)}
-        onSignInClick={() => setLoginOpen(true)}
+        onSignInClick={() => setSignInOpen(true)}
       />
 
       <main className="mx-auto flex w-full max-w-[1500px] flex-1 flex-col gap-4 px-4 py-5 sm:px-6">
@@ -441,7 +441,7 @@ export function Board() {
         quests={quests}
         onCreate={openCreate}
         onEditQuest={openEdit}
-        onSignIn={() => setLoginOpen(true)}
+        onSignIn={() => setSignInOpen(true)}
         hasActiveFilters={hasActiveFilters}
         onClearFilters={() => {
           setSearch("");
@@ -463,7 +463,7 @@ export function Board() {
         onDelete={editing ? () => remove(editing.id) : undefined}
       />
 
-      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
+      <SignInModal open={signInOpen} onClose={() => setSignInOpen(false)} />
     </div>
   );
 }

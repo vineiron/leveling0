@@ -54,9 +54,9 @@ const MONITOR =
   "M3 4.75A1.75 1.75 0 014.75 3h10.5A1.75 1.75 0 0117 4.75v7.5A1.75 1.75 0 0115.25 14h-3.5v1.5h2a.75.75 0 010 1.5h-7.5a.75.75 0 010-1.5h2V14h-3.5A1.75 1.75 0 013 12.25v-7.5z";
 const FILTER_X =
   "M3 4.75A.75.75 0 013.75 4h12.5a.75.75 0 01.6 1.2L12 11.31V16a.75.75 0 01-1.17.62l-2.5-1.67A.75.75 0 018 14.33V11.3L3.15 5.2A.75.75 0 013 4.75z";
-const LOGIN =
+const SIGN_IN =
   "M11 3a.75.75 0 000 1.5h2.75a.75.75 0 01.75.75v9.5a.75.75 0 01-.75.75H11a.75.75 0 000 1.5h2.75A2.25 2.25 0 0016 14.75v-9.5A2.25 2.25 0 0013.75 3H11zM7.28 6.97a.75.75 0 10-1.06 1.06l1.22 1.22H3a.75.75 0 000 1.5h4.44L6.22 11.97a.75.75 0 101.06 1.06l2.5-2.5a.75.75 0 000-1.06l-2.5-2.5z";
-const LOGOUT =
+const SIGN_OUT =
   "M9 3a.75.75 0 000 1.5H6.25a.75.75 0 00-.75.75v9.5c0 .41.34.75.75.75H9A.75.75 0 019 17H6.25A2.25 2.25 0 014 14.75v-9.5A2.25 2.25 0 016.25 3H9zm4.72 3.97a.75.75 0 011.06 0l2.5 2.5a.75.75 0 010 1.06l-2.5 2.5a.75.75 0 11-1.06-1.06l1.22-1.22H9a.75.75 0 010-1.5h5.94l-1.22-1.22a.75.75 0 010-1.06z";
 
 export function CommandPalette({
@@ -147,7 +147,7 @@ export function CommandPalette({
         label: "Sign out",
         hint: user.email ?? undefined,
         keywords: "log out exit account",
-        icon: <I d={LOGOUT} />,
+        icon: <I d={SIGN_OUT} />,
         run: () => void signOut(),
       });
     } else {
@@ -157,7 +157,7 @@ export function CommandPalette({
         label: "Sign in",
         hint: "Sync across devices",
         keywords: "log in google account",
-        icon: <I d={LOGIN} />,
+        icon: <I d={SIGN_IN} />,
         run: onSignIn,
       });
     }
