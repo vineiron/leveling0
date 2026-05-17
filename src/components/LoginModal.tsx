@@ -38,11 +38,11 @@ export function LoginModal({ open, onClose }: Props) {
         </span>
         <div className="space-y-1.5">
           <h3 className="text-base font-semibold tracking-tight text-fg">
-            Sync your board everywhere
+            Sync your quests everywhere
           </h3>
           <p className="text-sm text-muted">
-            Sign in to keep your quests across devices. Without an account,
-            quests stay in this browser only.
+            Sign in to keep your quests across devices (browser also). Without
+            an account, quests stay local in this browser only.
           </p>
         </div>
 

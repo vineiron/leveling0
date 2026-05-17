@@ -339,10 +339,10 @@ export function Board() {
             </span>
             <div className="space-y-1">
               <h2 className="text-base font-semibold text-fg">
-                Light the first spark
+                Start leveling
               </h2>
               <p className="max-w-xs text-sm text-muted">
-                Your board is empty. Create a quest to start tracking your work.
+                You have no quests, create a quest to start leveling.
               </p>
             </div>
             <div className="flex items-center gap-2">
