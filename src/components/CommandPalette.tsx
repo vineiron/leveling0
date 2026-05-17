@@ -75,6 +75,7 @@ export function CommandPalette({
   const [selected, setSelected] = useState(0);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
+  const keyNav = useRef(false);
 
   useEffect(() => {
     if (!open) return;
@@ -208,6 +209,8 @@ export function CommandPalette({
   }, [results]);
 
   useEffect(() => {
+    if (!keyNav.current) return;
+    keyNav.current = false;
     const el = listRef.current?.querySelector<HTMLElement>(
       `[data-idx="${selected}"]`,
     );
@@ -224,9 +227,11 @@ export function CommandPalette({
   function onKeyDown(e: React.KeyboardEvent) {
     if (e.key === "ArrowDown") {
       e.preventDefault();
+      keyNav.current = true;
       setSelected((s) => (results.length ? (s + 1) % results.length : 0));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
+      keyNav.current = true;
       setSelected((s) =>
         results.length ? (s - 1 + results.length) % results.length : 0,
       );
@@ -310,7 +315,10 @@ export function CommandPalette({
                   <button
                     type="button"
                     data-idx={idx}
-                    onMouseMove={() => setSelected(idx)}
+                    onMouseMove={() => {
+                      keyNav.current = false;
+                      setSelected(idx);
+                    }}
                     onClick={() => exec(entry)}
                     className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
                       isSel
