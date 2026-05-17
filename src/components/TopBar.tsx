@@ -11,7 +11,7 @@ type Props = {
   allTags: string[];
   activeTags: string[];
   onActiveTagsChange: (next: string[]) => void;
-  onNewItem: () => void;
+  onNewQuest: () => void;
   onOpenPalette: () => void;
   onSignInClick: () => void;
 };
@@ -51,7 +51,7 @@ export function TopBar({
   allTags,
   activeTags,
   onActiveTagsChange,
-  onNewItem,
+  onNewQuest,
   onOpenPalette,
   onSignInClick,
 }: Props) {
@@ -77,7 +77,7 @@ export function TopBar({
             type="button"
             onClick={onOpenPalette}
             className="group flex h-9 w-[14rem] items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm text-muted transition-colors hover:border-border-strong hover:bg-surface-2 lg:w-[21rem] xl:w-[27rem]"
-            aria-label="Search items or run a command"
+            aria-label="Search quests or run a command"
           >
             <SearchIcon className="h-4 w-4 text-faint transition-colors group-hover:text-muted" />
             <span className="flex-1 truncate text-left">
@@ -96,11 +96,11 @@ export function TopBar({
 
           <button
             type="button"
-            onClick={onNewItem}
+            onClick={onNewQuest}
             className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-accent px-2.5 text-sm font-medium text-accent-fg shadow-sm transition-all duration-150 ease-[cubic-bezier(.2,.9,.25,1)] hover:bg-accent-hover hover:shadow-[0_2px_14px_var(--accent-glow)] active:scale-[.97] lg:px-3"
           >
             <PlusIcon />
-            <span className="hidden lg:inline">New item</span>
+            <span className="hidden lg:inline">New quest</span>
           </button>
         </div>
 
@@ -115,8 +115,8 @@ export function TopBar({
             className="hidden items-center gap-1.5 rounded-full bg-surface px-2 py-0.5 text-[11px] font-medium text-muted md:inline-flex"
             title={
               mode === "remote"
-                ? "Items sync to your account"
-                : "Items are saved in this browser only"
+                ? "Quests sync to your account"
+                : "Quests are saved in this browser only"
             }
           >
             <span

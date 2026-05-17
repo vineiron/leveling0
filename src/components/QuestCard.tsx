@@ -2,12 +2,12 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { dueState } from "@/lib/items/due";
-import type { Item } from "@/lib/items/types";
+import { dueState } from "@/lib/quests/due";
+import type { Quest } from "@/lib/quests/types";
 
 type Props = {
-  item: Item;
-  onEdit: (item: Item) => void;
+  quest: Quest;
+  onEdit: (quest: Quest) => void;
 };
 
 function formatDue(iso: string | null): string | null {
@@ -22,7 +22,7 @@ function formatDue(iso: string | null): string | null {
   });
 }
 
-export function ItemCard({ item, onEdit }: Props) {
+export function QuestCard({ quest, onEdit }: Props) {
   const {
     attributes,
     listeners,
@@ -30,18 +30,18 @@ export function ItemCard({ item, onEdit }: Props) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: item.id, data: { status: item.status } });
+  } = useSortable({ id: quest.id, data: { status: quest.status } });
 
   const style = {
     transform: CSS.Translate.toString(transform),
     transition,
   };
 
-  const due = formatDue(item.dueAt);
-  const state = dueState(item.dueAt, item.status);
+  const due = formatDue(quest.dueAt);
+  const state = dueState(quest.dueAt, quest.status);
   const overdue = state === "overdue";
   const soon = state === "soon";
-  const hasNote = item.note.trim().length > 0;
+  const hasNote = quest.note.trim().length > 0;
 
   return (
     <div
@@ -60,12 +60,12 @@ export function ItemCard({ item, onEdit }: Props) {
       <div className="flex items-stretch gap-2">
         <button
           type="button"
-          onClick={() => onEdit(item)}
+          onClick={() => onEdit(quest)}
           className="flex min-w-0 flex-1 flex-col gap-2 text-left"
         >
           <div className="flex items-start gap-2">
             <span className="line-clamp-2 min-w-0 flex-1 text-[13px] font-medium leading-snug text-fg">
-              {item.title}
+              {quest.title}
             </span>
             {hasNote && (
               <span
@@ -90,7 +90,7 @@ export function ItemCard({ item, onEdit }: Props) {
             )}
           </div>
 
-          {(due || item.tags.length > 0) && (
+          {(due || quest.tags.length > 0) && (
             <div className="flex flex-wrap items-center gap-1.5">
               {due && (
                 <span
@@ -130,7 +130,7 @@ export function ItemCard({ item, onEdit }: Props) {
                   )}
                 </span>
               )}
-              {item.tags.slice(0, 2).map((t, i) => (
+              {quest.tags.slice(0, 2).map((t, i) => (
                 <span
                   key={t}
                   className={`${
@@ -152,20 +152,20 @@ export function ItemCard({ item, onEdit }: Props) {
                   <span className="truncate">{t}</span>
                 </span>
               ))}
-              {item.tags.length > 1 && (
+              {quest.tags.length > 1 && (
                 <span
                   className="inline-flex shrink-0 items-center rounded-md bg-surface px-2 py-0.5 text-[11px] font-medium text-muted md:hidden"
-                  title={item.tags.slice(1).join(", ")}
+                  title={quest.tags.slice(1).join(", ")}
                 >
-                  +{item.tags.length - 1}
+                  +{quest.tags.length - 1}
                 </span>
               )}
-              {item.tags.length > 2 && (
+              {quest.tags.length > 2 && (
                 <span
                   className="hidden shrink-0 items-center rounded-md bg-surface px-2 py-0.5 text-[11px] font-medium text-muted md:inline-flex"
-                  title={item.tags.slice(2).join(", ")}
+                  title={quest.tags.slice(2).join(", ")}
                 >
-                  +{item.tags.length - 2}
+                  +{quest.tags.length - 2}
                 </span>
               )}
             </div>

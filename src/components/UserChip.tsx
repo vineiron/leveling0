@@ -254,7 +254,7 @@ export function UserChip({ onSignInClick }: Props) {
         <p className="text-sm text-muted">
           You&apos;ll be signed out of{" "}
           <span className="font-medium text-fg">{email}</span>. Your synced
-          items stay safe in the cloud.
+          quests stay safe in the cloud.
         </p>
         <div className="mt-5 flex justify-end gap-2">
           <button

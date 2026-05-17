@@ -321,7 +321,7 @@ export default function DesignSystemPage() {
           <div className="relative">
             <select className={`w-full appearance-none pr-9 ${field}`}>
               <option>Select…</option>
-              <option>Backlog</option>
+              <option>Quest Log</option>
             </select>
             <svg
               className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-faint"
@@ -403,13 +403,13 @@ export default function DesignSystemPage() {
             12
           </span>
           <span className="flex items-center gap-2 text-sm text-fg">
-            <StatusIcon status="backlog" /> Backlog
+            <StatusIcon status="backlog" /> Quest Log
           </span>
           <span className="flex items-center gap-2 text-sm text-fg">
-            <StatusIcon status="in_progress" /> In Progress
+            <StatusIcon status="in_progress" /> In Pursuit
           </span>
           <span className="flex items-center gap-2 text-sm text-fg">
-            <StatusIcon status="done" /> Done
+            <StatusIcon status="done" /> Conquered
           </span>
         </div>
       </Section>

@@ -2,30 +2,30 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { apiStore, type ItemStore, localStore } from "./storage";
-import type { Item, ItemDraft, ItemStatus } from "./types";
+import { apiStore, localStore, type QuestStore } from "./storage";
+import type { Quest, QuestDraft, QuestStatus } from "./types";
 
-type ReorderGroups = Array<{ status: ItemStatus; ids: string[] }>;
+type ReorderGroups = Array<{ status: QuestStatus; ids: string[] }>;
 
-export type UseItems = {
-  items: Item[];
+export type UseQuests = {
+  quests: Quest[];
   loading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
-  create: (draft: ItemDraft) => Promise<void>;
-  update: (id: string, patch: Partial<ItemDraft>) => Promise<void>;
+  create: (draft: QuestDraft) => Promise<void>;
+  update: (id: string, patch: Partial<QuestDraft>) => Promise<void>;
   remove: (id: string) => Promise<void>;
   previewReorder: (groups: ReorderGroups) => void;
   commitReorder: (groups: ReorderGroups) => Promise<void>;
   mode: "local" | "remote";
 };
 
-export function useItems(): UseItems {
+export function useQuests(): UseQuests {
   const { user, loading: authLoading } = useAuth();
-  const store: ItemStore = user ? apiStore : localStore;
+  const store: QuestStore = user ? apiStore : localStore;
   const mode: "local" | "remote" = user ? "remote" : "local";
 
-  const [items, setItems] = useState<Item[]>([]);
+  const [quests, setItems] = useState<Quest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const reqId = useRef(0);
@@ -51,7 +51,7 @@ export function useItems(): UseItems {
   }, [authLoading, refresh]);
 
   const create = useCallback(
-    async (draft: ItemDraft) => {
+    async (draft: QuestDraft) => {
       const created = await store.create(draft);
       setItems((prev) => [...prev, created]);
     },
@@ -59,7 +59,7 @@ export function useItems(): UseItems {
   );
 
   const update = useCallback(
-    async (id: string, patch: Partial<ItemDraft>) => {
+    async (id: string, patch: Partial<QuestDraft>) => {
       const updated = await store.update(id, patch);
       setItems((prev) => prev.map((i) => (i.id === id ? updated : i)));
     },
@@ -105,7 +105,7 @@ export function useItems(): UseItems {
 
   return useMemo(
     () => ({
-      items,
+      quests,
       loading: loading || authLoading,
       error,
       refresh,
@@ -117,7 +117,7 @@ export function useItems(): UseItems {
       mode,
     }),
     [
-      items,
+      quests,
       loading,
       authLoading,
       error,

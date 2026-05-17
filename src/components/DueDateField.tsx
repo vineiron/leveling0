@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { dueState } from "@/lib/items/due";
-import type { ItemStatus } from "@/lib/items/types";
+import { dueState } from "@/lib/quests/due";
+import type { QuestStatus } from "@/lib/quests/types";
 
 type Props = {
   value: string | null; // ISO string
-  status: ItemStatus;
+  status: QuestStatus;
   onChange: (iso: string | null) => void;
 };
 

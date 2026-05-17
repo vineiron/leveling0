@@ -1,5 +1,5 @@
 import { ApiError, toFriendlyMessages } from "./errors";
-import type { Item, ItemDraft, ItemStatus } from "./types";
+import type { Quest, QuestDraft, QuestStatus } from "./types";
 
 const LS_KEY = "leveling0:items:v1";
 
@@ -10,49 +10,49 @@ function uid() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
-function readLocal(): Item[] {
+function readLocal(): Quest[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(LS_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed as Item[];
+    return parsed as Quest[];
   } catch {
     return [];
   }
 }
 
-function writeLocal(items: Item[]) {
+function writeLocal(quests: Quest[]) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(LS_KEY, JSON.stringify(items));
+  window.localStorage.setItem(LS_KEY, JSON.stringify(quests));
 }
 
-export type ItemStore = {
-  list(): Promise<Item[]>;
-  create(draft: ItemDraft): Promise<Item>;
+export type QuestStore = {
+  list(): Promise<Quest[]>;
+  create(draft: QuestDraft): Promise<Quest>;
   update(
     id: string,
-    patch: Partial<ItemDraft> & { position?: number },
-  ): Promise<Item>;
+    patch: Partial<QuestDraft> & { position?: number },
+  ): Promise<Quest>;
   remove(id: string): Promise<void>;
-  reorder(groups: Array<{ status: ItemStatus; ids: string[] }>): Promise<void>;
+  reorder(groups: Array<{ status: QuestStatus; ids: string[] }>): Promise<void>;
 };
 
-export const localStore: ItemStore = {
+export const localStore: QuestStore = {
   async list() {
-    const items = readLocal();
-    return [...items].sort((a, b) => {
+    const quests = readLocal();
+    return [...quests].sort((a, b) => {
       if (a.status !== b.status) return a.status.localeCompare(b.status);
       return a.position - b.position;
     });
   },
   async create(draft) {
-    const items = readLocal();
-    const sameStatus = items.filter((i) => i.status === draft.status);
+    const quests = readLocal();
+    const sameStatus = quests.filter((i) => i.status === draft.status);
     const maxPos = sameStatus.reduce((m, i) => Math.max(m, i.position), -1);
     const now = new Date().toISOString();
-    const item: Item = {
+    const quest: Quest = {
       id: uid(),
       status: draft.status,
       position: maxPos + 1,
@@ -64,30 +64,30 @@ export const localStore: ItemStore = {
       createdAt: now,
       updatedAt: now,
     };
-    items.push(item);
-    writeLocal(items);
-    return item;
+    quests.push(quest);
+    writeLocal(quests);
+    return quest;
   },
   async update(id, patch) {
-    const items = readLocal();
-    const idx = items.findIndex((i) => i.id === id);
+    const quests = readLocal();
+    const idx = quests.findIndex((i) => i.id === id);
     if (idx === -1) throw new Error("Not found");
-    const next: Item = {
-      ...items[idx],
+    const next: Quest = {
+      ...quests[idx],
       ...patch,
       updatedAt: new Date().toISOString(),
     };
-    items[idx] = next;
-    writeLocal(items);
+    quests[idx] = next;
+    writeLocal(quests);
     return next;
   },
   async remove(id) {
-    const items = readLocal().filter((i) => i.id !== id);
-    writeLocal(items);
+    const quests = readLocal().filter((i) => i.id !== id);
+    writeLocal(quests);
   },
   async reorder(groups) {
-    const items = readLocal();
-    const map = new Map(items.map((i) => [i.id, i]));
+    const quests = readLocal();
+    const map = new Map(quests.map((i) => [i.id, i]));
     const now = new Date().toISOString();
     for (const group of groups) {
       group.ids.forEach((id, position) => {
@@ -125,39 +125,39 @@ async function jsonOrThrow(res: Response) {
   return res.json();
 }
 
-export const apiStore: ItemStore = {
+export const apiStore: QuestStore = {
   async list() {
     const data = await jsonOrThrow(
-      await fetch("/api/items", { cache: "no-store" }),
+      await fetch("/api/quests", { cache: "no-store" }),
     );
-    return data.items as Item[];
+    return data.quests as Quest[];
   },
   async create(draft) {
     const data = await jsonOrThrow(
-      await fetch("/api/items", {
+      await fetch("/api/quests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(draft),
       }),
     );
-    return data.item as Item;
+    return data.quest as Quest;
   },
   async update(id, patch) {
     const data = await jsonOrThrow(
-      await fetch(`/api/items/${id}`, {
+      await fetch(`/api/quests/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(patch),
       }),
     );
-    return data.item as Item;
+    return data.quest as Quest;
   },
   async remove(id) {
-    await jsonOrThrow(await fetch(`/api/items/${id}`, { method: "DELETE" }));
+    await jsonOrThrow(await fetch(`/api/quests/${id}`, { method: "DELETE" }));
   },
   async reorder(groups) {
     await jsonOrThrow(
-      await fetch("/api/items/reorder", {
+      await fetch("/api/quests/reorder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ groups }),

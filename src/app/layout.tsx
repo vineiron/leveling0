@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "leveling0",
-  description: "A simple kanban board",
+  description: "long live the fighters!",
 };
 
 export default function RootLayout({

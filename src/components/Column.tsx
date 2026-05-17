@@ -5,25 +5,25 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import type { Item, ItemStatus } from "@/lib/items/types";
-import { STATUS_LABELS } from "@/lib/items/types";
-import { ItemCard } from "./ItemCard";
+import type { Quest, QuestStatus } from "@/lib/quests/types";
+import { STATUS_LABELS } from "@/lib/quests/types";
+import { QuestCard } from "./QuestCard";
 import { StatusIcon } from "./StatusIcon";
 
 type Props = {
-  status: ItemStatus;
-  items: Item[];
+  status: QuestStatus;
+  quests: Quest[];
   filtered: boolean;
-  onAdd: (status: ItemStatus) => void;
-  onEdit: (item: Item) => void;
+  onAdd: (status: QuestStatus) => void;
+  onEdit: (quest: Quest) => void;
 };
 
-export function Column({ status, items, filtered, onAdd, onEdit }: Props) {
+export function Column({ status, quests, filtered, onAdd, onEdit }: Props) {
   const { setNodeRef, isOver } = useDroppable({
     id: `column:${status}`,
     data: { status },
   });
-  const ids = items.map((i) => i.id);
+  const ids = quests.map((i) => i.id);
 
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-2.5 rounded-2xl bg-surface p-2.5">
@@ -34,7 +34,7 @@ export function Column({ status, items, filtered, onAdd, onEdit }: Props) {
             {STATUS_LABELS[status]}
           </h3>
           <span className="hidden rounded-full bg-surface-2 px-1.5 py-0.5 text-[11px] font-medium text-muted md:inline-block">
-            {items.length}
+            {quests.length}
           </span>
         </div>
         <button
@@ -62,16 +62,16 @@ export function Column({ status, items, filtered, onAdd, onEdit }: Props) {
             isOver ? "bg-accent-subtle ring-1 ring-accent-border" : ""
           }`}
         >
-          {items.map((item) => (
-            <ItemCard key={item.id} item={item} onEdit={onEdit} />
+          {quests.map((quest) => (
+            <QuestCard key={quest.id} quest={quest} onEdit={onEdit} />
           ))}
 
-          {items.length === 0 &&
+          {quests.length === 0 &&
             (filtered ? (
               <div className="flex flex-1 flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border px-4 py-10 text-center">
                 <p className="text-[13px] font-medium text-muted">No matches</p>
                 <p className="text-xs text-faint">
-                  No items here fit the current filters.
+                  No quests here fit the current filters.
                 </p>
               </div>
             ) : (
@@ -91,7 +91,7 @@ export function Column({ status, items, filtered, onAdd, onEdit }: Props) {
                   </svg>
                 </span>
                 <span className="text-[13px] font-medium text-muted transition-colors group-hover:text-fg">
-                  Add an item
+                  Add a quest
                 </span>
               </button>
             ))}

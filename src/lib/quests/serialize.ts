@@ -1,7 +1,7 @@
-import type { DbItem } from "@/db/schema";
-import type { Item } from "./types";
+import type { DbQuest } from "@/db/schema";
+import type { Quest } from "./types";
 
-export function dbItemToItem(row: DbItem): Item {
+export function dbQuestToQuest(row: DbQuest): Quest {
   return {
     id: row.id,
     status: row.status,

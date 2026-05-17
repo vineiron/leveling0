@@ -1,13 +1,13 @@
-import type { ItemStatus } from "@/lib/items/types";
+import type { QuestStatus } from "@/lib/quests/types";
 
-const COLOR: Record<ItemStatus, string> = {
+const COLOR: Record<QuestStatus, string> = {
   backlog: "text-faint",
   in_progress: "text-progress",
   done: "text-success",
 };
 
 type Props = {
-  status: ItemStatus;
+  status: QuestStatus;
   className?: string;
 };
 

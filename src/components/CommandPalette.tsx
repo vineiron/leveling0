@@ -2,17 +2,17 @@
 
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import type { Item, ItemStatus } from "@/lib/items/types";
-import { ITEM_STATUSES, STATUS_LABELS } from "@/lib/items/types";
+import type { Quest, QuestStatus } from "@/lib/quests/types";
+import { QUEST_STATUSES, STATUS_LABELS } from "@/lib/quests/types";
 import { useTheme } from "@/lib/theme/ThemeProvider";
 import { StatusIcon } from "./StatusIcon";
 
 type Props = {
   open: boolean;
   onClose: () => void;
-  items: Item[];
-  onCreate: (status: ItemStatus) => void;
-  onEditItem: (item: Item) => void;
+  quests: Quest[];
+  onCreate: (status: QuestStatus) => void;
+  onEditQuest: (quest: Quest) => void;
   onSignIn: () => void;
   hasActiveFilters: boolean;
   onClearFilters: () => void;
@@ -62,9 +62,9 @@ const LOGOUT =
 export function CommandPalette({
   open,
   onClose,
-  items,
+  quests,
   onCreate,
-  onEditItem,
+  onEditQuest,
   onSignIn,
   hasActiveFilters,
   onClearFilters,
@@ -91,12 +91,12 @@ export function CommandPalette({
 
   const commands = useMemo<Entry[]>(() => {
     const list: Entry[] = [];
-    for (const s of ITEM_STATUSES) {
+    for (const s of QUEST_STATUSES) {
       list.push({
         id: `create:${s}`,
         group: "Create",
-        label: `New item in ${STATUS_LABELS[s]}`,
-        keywords: "add new create task card",
+        label: `New quest in ${STATUS_LABELS[s]}`,
+        keywords: "add new create task card quest",
         icon: <I d={PLUS} />,
         run: () => onCreate(s),
       });
@@ -181,7 +181,7 @@ export function CommandPalette({
         )
       : commands;
 
-    const ranked = [...items].sort(
+    const ranked = [...quests].sort(
       (a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt),
     );
     const matched = q
@@ -190,17 +190,17 @@ export function CommandPalette({
         )
       : ranked;
 
-    const itemEntries: Entry[] = matched.slice(0, q ? 12 : 6).map((it) => ({
-      id: `item:${it.id}`,
-      group: "Jump to item",
+    const questEntries: Entry[] = matched.slice(0, q ? 12 : 6).map((it) => ({
+      id: `quest:${it.id}`,
+      group: "Jump to quest",
       label: it.title || "Untitled",
       hint: STATUS_LABELS[it.status],
       icon: <StatusIcon status={it.status} className="h-3.5 w-3.5" />,
-      run: () => onEditItem(it),
+      run: () => onEditQuest(it),
     }));
 
-    return [...cmds, ...itemEntries];
-  }, [query, commands, items, onEditItem]);
+    return [...cmds, ...questEntries];
+  }, [query, commands, quests, onEditQuest]);
 
   useEffect(() => {
     setSelected((s) =>

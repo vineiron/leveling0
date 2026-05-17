@@ -11,34 +11,35 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Item, ItemStatus } from "@/lib/items/types";
-import { ITEM_STATUSES, STATUS_LABELS } from "@/lib/items/types";
-import { useItems } from "@/lib/items/useItems";
+import type { Quest, QuestStatus } from "@/lib/quests/types";
+import { QUEST_STATUSES, STATUS_LABELS } from "@/lib/quests/types";
+import { useQuests } from "@/lib/quests/useQuests";
 import { FlameIcon } from "./BrandMark";
 import { Column } from "./Column";
 import { CommandPalette } from "./CommandPalette";
-import { ItemModal } from "./ItemModal";
 import { LoginModal } from "./LoginModal";
+import { QuestModal } from "./QuestModal";
 import { SkeletonCard } from "./SkeletonCard";
 import { StatusIcon } from "./StatusIcon";
 import { SyncingPill } from "./SyncingPill";
 import { TagFilter } from "./TagFilter";
 import { TopBar } from "./TopBar";
 
-function groupByStatus(items: Item[]): Record<ItemStatus, Item[]> {
-  const out: Record<ItemStatus, Item[]> = {
+function groupByStatus(quests: Quest[]): Record<QuestStatus, Quest[]> {
+  const out: Record<QuestStatus, Quest[]> = {
     backlog: [],
     in_progress: [],
     done: [],
   };
-  for (const it of items) out[it.status].push(it);
-  for (const s of ITEM_STATUSES) out[s].sort((a, b) => a.position - b.position);
+  for (const it of quests) out[it.status].push(it);
+  for (const s of QUEST_STATUSES)
+    out[s].sort((a, b) => a.position - b.position);
   return out;
 }
 
 export function Board() {
   const {
-    items,
+    quests,
     loading,
     error,
     create,
@@ -47,18 +48,18 @@ export function Board() {
     previewReorder,
     commitReorder,
     mode,
-  } = useItems();
+  } = useQuests();
 
   const [search, setSearch] = useState("");
   const [activeTags, setActiveTags] = useState<string[]>([]);
-  const [editing, setEditing] = useState<Item | null>(null);
-  const [adding, setAdding] = useState<ItemStatus | null>(null);
+  const [editing, setEditing] = useState<Quest | null>(null);
+  const [adding, setAdding] = useState<QuestStatus | null>(null);
   const [loginOpen, setLoginOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const [mobileTab, setMobileTab] = useState<ItemStatus>("backlog");
+  const [mobileTab, setMobileTab] = useState<QuestStatus>("backlog");
 
   // Global shortcuts: ⌘/Ctrl-K and "/" both open the command palette, which
-  // is now the single place to search items and run actions.
+  // is now the single place to search quests and run actions.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -92,13 +93,13 @@ export function Board() {
 
   const allTags = useMemo(() => {
     const set = new Set<string>();
-    for (const it of items) for (const t of it.tags) set.add(t);
+    for (const it of quests) for (const t of it.tags) set.add(t);
     return [...set].sort();
-  }, [items]);
+  }, [quests]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return items.filter((it) => {
+    return quests.filter((it) => {
       if (q) {
         const hay = `${it.title}\n${it.detail}\n${it.note}`.toLowerCase();
         if (!hay.includes(q)) return false;
@@ -108,31 +109,31 @@ export function Board() {
       }
       return true;
     });
-  }, [items, search, activeTags]);
+  }, [quests, search, activeTags]);
 
   const grouped = useMemo(() => groupByStatus(filtered), [filtered]);
-  // Reorder works against the raw items list — we always send the full ordering for affected columns.
-  const groupedAll = useMemo(() => groupByStatus(items), [items]);
+  // Reorder works against the raw quests list — we always send the full ordering for affected columns.
+  const groupedAll = useMemo(() => groupByStatus(quests), [quests]);
 
-  const isFirstLoad = loading && items.length === 0;
-  const isBackgroundSync = loading && items.length > 0;
+  const isFirstLoad = loading && quests.length === 0;
+  const isBackgroundSync = loading && quests.length > 0;
   const hasActiveFilters = search.trim().length > 0 || activeTags.length > 0;
-  const isEmptyBoard = !loading && items.length === 0;
+  const isEmptyBoard = !loading && quests.length === 0;
 
   // Pending reorder state accumulated across onDragOver, committed once on drop.
-  const pendingGroupsRef = useRef<Map<ItemStatus, string[]>>(new Map());
+  const pendingGroupsRef = useRef<Map<QuestStatus, string[]>>(new Map());
 
   function isColumnId(id: string) {
     return id.startsWith("column:");
   }
 
-  function findContainer(id: string): ItemStatus | null {
-    if (isColumnId(id)) return id.slice("column:".length) as ItemStatus;
-    const it = items.find((i) => i.id === id);
+  function findContainer(id: string): QuestStatus | null {
+    if (isColumnId(id)) return id.slice("column:".length) as QuestStatus;
+    const it = quests.find((i) => i.id === id);
     return it ? it.status : null;
   }
 
-  function applyPreview(groups: Array<{ status: ItemStatus; ids: string[] }>) {
+  function applyPreview(groups: Array<{ status: QuestStatus; ids: string[] }>) {
     for (const g of groups) pendingGroupsRef.current.set(g.status, g.ids);
     previewReorder(groups);
   }
@@ -150,7 +151,7 @@ export function Board() {
     const fromStatus = findContainer(activeId);
     const toStatus = findContainer(overId);
     if (!fromStatus || !toStatus || fromStatus === toStatus) return;
-    const moving = items.find((i) => i.id === activeId);
+    const moving = quests.find((i) => i.id === activeId);
     if (!moving) return;
     const targetCol = groupedAll[toStatus].filter((i) => i.id !== activeId);
     const targetIds = isColumnId(overId)
@@ -210,12 +211,12 @@ export function Board() {
     }
   }
 
-  function openCreate(status: ItemStatus) {
+  function openCreate(status: QuestStatus) {
     setEditing(null);
     setAdding(status);
   }
 
-  function openEdit(it: Item) {
+  function openEdit(it: Quest) {
     setAdding(null);
     setEditing(it);
   }
@@ -227,7 +228,7 @@ export function Board() {
         allTags={allTags}
         activeTags={activeTags}
         onActiveTagsChange={setActiveTags}
-        onNewItem={() => openCreate(mobileTab)}
+        onNewQuest={() => openCreate(mobileTab)}
         onOpenPalette={() => setPaletteOpen(true)}
         onSignInClick={() => setLoginOpen(true)}
       />
@@ -261,8 +262,8 @@ export function Board() {
                 className="inline-flex items-center gap-1.5 rounded-full bg-surface px-2 py-0.5 text-[11px] font-medium text-muted"
                 title={
                   mode === "remote"
-                    ? "Items sync to your account"
-                    : "Items are saved in this browser only"
+                    ? "Quests sync to your account"
+                    : "Quests are saved in this browser only"
                 }
               >
                 <span
@@ -277,7 +278,7 @@ export function Board() {
               <button
                 type="button"
                 onClick={() => setPaletteOpen(true)}
-                aria-label="Search items or run a command"
+                aria-label="Search quests or run a command"
                 className="group flex h-9 flex-1 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm text-muted transition-colors hover:bg-surface-2"
               >
                 <svg
@@ -292,7 +293,9 @@ export function Board() {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span className="flex-1 truncate text-left">Search items…</span>
+                <span className="flex-1 truncate text-left">
+                  Search quests…
+                </span>
               </button>
               <TagFilter
                 allTags={allTags}
@@ -304,7 +307,7 @@ export function Board() {
         )}
 
         <div className="flex gap-1.5 md:hidden" role="tablist">
-          {ITEM_STATUSES.map((status) => {
+          {QUEST_STATUSES.map((status) => {
             const active = status === mobileTab;
             return (
               <button
@@ -339,7 +342,7 @@ export function Board() {
                 Light the first spark
               </h2>
               <p className="max-w-xs text-sm text-muted">
-                Your board is empty. Create an item to start tracking your work.
+                Your board is empty. Create a quest to start tracking your work.
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -356,13 +359,13 @@ export function Board() {
                 >
                   <path d="M10 4a.75.75 0 01.75.75v4.5h4.5a.75.75 0 010 1.5h-4.5v4.5a.75.75 0 01-1.5 0v-4.5h-4.5a.75.75 0 010-1.5h4.5v-4.5A.75.75 0 0110 4z" />
                 </svg>
-                Create your first item
+                Create your first quest
               </button>
             </div>
           </div>
         ) : isFirstLoad ? (
           <div className="flex flex-1 flex-col gap-3 md:grid md:grid-cols-3">
-            {ITEM_STATUSES.map((status) => (
+            {QUEST_STATUSES.map((status) => (
               <div
                 key={status}
                 className={`${status === mobileTab ? "flex" : "hidden"} flex-1 flex-col md:flex`}
@@ -394,14 +397,14 @@ export function Board() {
             }}
           >
             <div className="flex flex-1 flex-col gap-3 md:grid md:grid-cols-3">
-              {ITEM_STATUSES.map((status) => (
+              {QUEST_STATUSES.map((status) => (
                 <div
                   key={status}
                   className={`${status === mobileTab ? "flex" : "hidden"} flex-1 flex-col md:flex`}
                 >
                   <Column
                     status={status}
-                    items={grouped[status]}
+                    quests={grouped[status]}
                     filtered={hasActiveFilters}
                     onAdd={openCreate}
                     onEdit={openEdit}
@@ -419,7 +422,7 @@ export function Board() {
       <button
         type="button"
         onClick={() => openCreate(mobileTab)}
-        aria-label="New item"
+        aria-label="New quest"
         className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-fg shadow-lg transition-all duration-150 ease-[cubic-bezier(.2,.9,.25,1)] hover:bg-accent-hover active:scale-95 md:hidden"
       >
         <svg
@@ -435,9 +438,9 @@ export function Board() {
       <CommandPalette
         open={paletteOpen}
         onClose={() => setPaletteOpen(false)}
-        items={items}
+        quests={quests}
         onCreate={openCreate}
-        onEditItem={openEdit}
+        onEditQuest={openEdit}
         onSignIn={() => setLoginOpen(true)}
         hasActiveFilters={hasActiveFilters}
         onClearFilters={() => {
@@ -446,7 +449,7 @@ export function Board() {
         }}
       />
 
-      <ItemModal
+      <QuestModal
         open={editing !== null || adding !== null}
         onClose={() => {
           setEditing(null);

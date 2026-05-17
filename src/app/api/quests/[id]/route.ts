@@ -1,11 +1,11 @@
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db/client";
-import { items } from "@/db/schema";
-import { dbItemToItem } from "@/lib/items/serialize";
+import { quests } from "@/db/schema";
+import { dbQuestToQuest } from "@/lib/quests/serialize";
 import { checkOrigin } from "@/lib/security";
 import { getCurrentUserId } from "@/lib/supabase/server";
-import { updateItemSchema } from "@/lib/validation";
+import { updateQuestSchema } from "@/lib/validation";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -20,7 +20,7 @@ export async function PATCH(request: Request, ctx: RouteContext) {
   const { id } = await ctx.params;
 
   const raw = await request.json().catch(() => null);
-  const parsed = updateItemSchema.safeParse(raw);
+  const parsed = updateQuestSchema.safeParse(raw);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid request", issues: parsed.error.issues },
@@ -39,15 +39,15 @@ export async function PATCH(request: Request, ctx: RouteContext) {
   if (data.note !== undefined) patch.note = data.note;
 
   const [updated] = await db
-    .update(items)
+    .update(quests)
     .set(patch)
-    .where(and(eq(items.id, id), eq(items.userId, userId)))
+    .where(and(eq(quests.id, id), eq(quests.userId, userId)))
     .returning();
 
   if (!updated) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-  return NextResponse.json({ item: dbItemToItem(updated) });
+  return NextResponse.json({ quest: dbQuestToQuest(updated) });
 }
 
 export async function DELETE(request: Request, ctx: RouteContext) {
@@ -60,9 +60,9 @@ export async function DELETE(request: Request, ctx: RouteContext) {
   }
   const { id } = await ctx.params;
   const deleted = await db
-    .delete(items)
-    .where(and(eq(items.id, id), eq(items.userId, userId)))
-    .returning({ id: items.id });
+    .delete(quests)
+    .where(and(eq(quests.id, id), eq(quests.userId, userId)))
+    .returning({ id: quests.id });
   if (deleted.length === 0) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }

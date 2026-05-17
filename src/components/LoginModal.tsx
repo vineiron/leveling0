@@ -41,8 +41,8 @@ export function LoginModal({ open, onClose }: Props) {
             Sync your board everywhere
           </h3>
           <p className="text-sm text-muted">
-            Sign in to keep your items across devices. Without an account, items
-            stay in this browser only.
+            Sign in to keep your quests across devices. Without an account,
+            quests stay in this browser only.
           </p>
         </div>
 

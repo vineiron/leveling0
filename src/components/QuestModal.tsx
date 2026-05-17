@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ApiError } from "@/lib/items/errors";
-import type { Item, ItemDraft, ItemStatus } from "@/lib/items/types";
-import { ITEM_STATUSES, STATUS_LABELS } from "@/lib/items/types";
+import { ApiError } from "@/lib/quests/errors";
+import type { Quest, QuestDraft, QuestStatus } from "@/lib/quests/types";
+import { QUEST_STATUSES, STATUS_LABELS } from "@/lib/quests/types";
 import { DueDateField } from "./DueDateField";
 import { MarkdownField } from "./MarkdownField";
 import { Modal } from "./Modal";
@@ -17,7 +17,7 @@ const FIELD_CLASS = `w-full ${field}`;
 
 type StoredDraft = {
   title: string;
-  status: ItemStatus;
+  status: QuestStatus;
   dueAt: string | null;
   tags: string[];
   detail: string;
@@ -58,15 +58,15 @@ function relativeAgo(ts: number): string {
 type Props = {
   open: boolean;
   onClose: () => void;
-  initial: Item | null;
-  defaultStatus: ItemStatus;
+  initial: Quest | null;
+  defaultStatus: QuestStatus;
   defaultTags?: string[];
   allTags?: string[];
-  onSubmit: (draft: ItemDraft) => Promise<void>;
+  onSubmit: (draft: QuestDraft) => Promise<void>;
   onDelete?: () => Promise<void>;
 };
 
-export function ItemModal({
+export function QuestModal({
   open,
   onClose,
   initial,
@@ -77,7 +77,7 @@ export function ItemModal({
   onDelete,
 }: Props) {
   const [title, setTitle] = useState("");
-  const [status, setStatus] = useState<ItemStatus>(defaultStatus);
+  const [status, setStatus] = useState<QuestStatus>(defaultStatus);
   const [dueAt, setDueAt] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [detail, setDetail] = useState("");
@@ -139,7 +139,7 @@ export function ItemModal({
     if (draft && draftSerialized && draftSerialized !== baseSerialized) {
       applyValues({
         title: draft.title ?? "",
-        status: ITEM_STATUSES.includes(draft.status)
+        status: QUEST_STATUSES.includes(draft.status)
           ? draft.status
           : baseValues.status,
         dueAt: draft.dueAt ?? null,
@@ -203,7 +203,7 @@ export function ItemModal({
       setErrors(["Title is required."]);
       return;
     }
-    if (!ITEM_STATUSES.includes(status)) {
+    if (!QUEST_STATUSES.includes(status)) {
       setErrors(["Status is required."]);
       return;
     }
@@ -266,8 +266,8 @@ export function ItemModal({
           : focusedField === "note"
             ? "Note"
             : initial
-              ? "Edit item"
-              : "New item"
+              ? "Edit quest"
+              : "New quest"
       }
       widthClass="max-w-5xl"
       heightClass="h-[85vh]"
@@ -295,7 +295,7 @@ export function ItemModal({
               </button>
               <button
                 type="submit"
-                form="item-form"
+                form="quest-form"
                 disabled={busy}
                 className={btn.primary}
               >
@@ -341,7 +341,7 @@ export function ItemModal({
         </div>
       ) : (
         <form
-          id="item-form"
+          id="quest-form"
           onSubmit={handleSubmit}
           className="flex flex-col gap-3"
         >
@@ -387,7 +387,7 @@ export function ItemModal({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   required
-                  placeholder="What needs to be done?"
+                  placeholder="What quest will you take on?"
                   className={FIELD_CLASS}
                 />
               </label>
@@ -400,10 +400,10 @@ export function ItemModal({
                   <div className="relative">
                     <select
                       value={status}
-                      onChange={(e) => setStatus(e.target.value as ItemStatus)}
+                      onChange={(e) => setStatus(e.target.value as QuestStatus)}
                       className={`w-full appearance-none pr-9 ${FIELD_CLASS}`}
                     >
-                      {ITEM_STATUSES.map((s) => (
+                      {QUEST_STATUSES.map((s) => (
                         <option key={s} value={s}>
                           {STATUS_LABELS[s]}
                         </option>
@@ -494,14 +494,14 @@ export function ItemModal({
         onClose={() => {
           if (!busy) setConfirmDeleteOpen(false);
         }}
-        title="Delete item?"
+        title="Delete quest?"
         widthClass="max-w-sm"
         hideHeaderBorder
       >
         <p className="text-sm text-muted">
           This will permanently delete{" "}
           <span className="font-medium text-fg">
-            {initial?.title || "this item"}
+            {initial?.title || "this quest"}
           </span>
           . This action can&apos;t be undone.
         </p>

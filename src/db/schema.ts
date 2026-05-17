@@ -8,18 +8,18 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-export const itemStatus = pgEnum("item_status", [
+export const questStatus = pgEnum("quest_status", [
   "backlog",
   "in_progress",
   "done",
 ]);
 
-export const items = pgTable(
-  "items",
+export const quests = pgTable(
+  "quests",
   {
     id: uuid().primaryKey().defaultRandom(),
     userId: uuid().notNull(),
-    status: itemStatus().notNull().default("backlog"),
+    status: questStatus().notNull().default("backlog"),
     position: integer().notNull().default(0),
     title: text().notNull(),
     dueAt: timestamp({ withTimezone: true }),
@@ -30,9 +30,9 @@ export const items = pgTable(
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
-    index("items_user_status_position_idx").on(t.userId, t.status, t.position),
+    index("quests_user_status_position_idx").on(t.userId, t.status, t.position),
   ],
 );
 
-export type DbItem = typeof items.$inferSelect;
-export type DbItemInsert = typeof items.$inferInsert;
+export type DbQuest = typeof quests.$inferSelect;
+export type DbQuestInsert = typeof quests.$inferInsert;

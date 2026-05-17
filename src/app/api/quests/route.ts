@@ -1,11 +1,11 @@
 import { asc, eq, max } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db/client";
-import { items } from "@/db/schema";
-import { dbItemToItem } from "@/lib/items/serialize";
+import { quests } from "@/db/schema";
+import { dbQuestToQuest } from "@/lib/quests/serialize";
 import { checkOrigin } from "@/lib/security";
 import { getCurrentUserId } from "@/lib/supabase/server";
-import { createItemSchema } from "@/lib/validation";
+import { createQuestSchema } from "@/lib/validation";
 
 export async function GET() {
   const userId = await getCurrentUserId();
@@ -14,10 +14,10 @@ export async function GET() {
   }
   const rows = await db
     .select()
-    .from(items)
-    .where(eq(items.userId, userId))
-    .orderBy(asc(items.status), asc(items.position));
-  return NextResponse.json({ items: rows.map(dbItemToItem) });
+    .from(quests)
+    .where(eq(quests.userId, userId))
+    .orderBy(asc(quests.status), asc(quests.position));
+  return NextResponse.json({ quests: rows.map(dbQuestToQuest) });
 }
 
 export async function POST(request: Request) {
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   }
 
   const raw = await request.json().catch(() => null);
-  const parsed = createItemSchema.safeParse(raw);
+  const parsed = createQuestSchema.safeParse(raw);
   if (!parsed.success) {
     return NextResponse.json(
       { error: "Invalid request", issues: parsed.error.issues },
@@ -40,12 +40,12 @@ export async function POST(request: Request) {
   const data = parsed.data;
 
   const [{ maxPos }] = await db
-    .select({ maxPos: max(items.position) })
-    .from(items)
-    .where(eq(items.userId, userId));
+    .select({ maxPos: max(quests.position) })
+    .from(quests)
+    .where(eq(quests.userId, userId));
 
   const [created] = await db
-    .insert(items)
+    .insert(quests)
     .values({
       userId,
       status: data.status,
@@ -58,5 +58,5 @@ export async function POST(request: Request) {
     })
     .returning();
 
-  return NextResponse.json({ item: dbItemToItem(created) }, { status: 201 });
+  return NextResponse.json({ quest: dbQuestToQuest(created) }, { status: 201 });
 }

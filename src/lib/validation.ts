@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ITEM_STATUSES, type ItemStatus } from "./items/types";
+import { QUEST_STATUSES, type QuestStatus } from "./quests/types";
 
 // Limits sized to realistic personal-board usage, not arbitrary ceilings.
 // They guard against accidental/abusive huge payloads and keep the client
@@ -11,7 +11,9 @@ const TAG_MAX = 32; // one or two words per tag
 const TAGS_MAX_COUNT = 15; // a task with >15 tags is unusual
 const REORDER_MAX_IDS_PER_GROUP = 1_000; // safety ceiling; real columns are far smaller
 
-const itemStatusSchema = z.enum(ITEM_STATUSES as [ItemStatus, ...ItemStatus[]]);
+const questStatusSchema = z.enum(
+  QUEST_STATUSES as [QuestStatus, ...QuestStatus[]],
+);
 
 const isoDateString = z
   .string()
@@ -37,10 +39,10 @@ const tagsSchema = z
   .array(z.string().trim().min(1).max(TAG_MAX))
   .max(TAGS_MAX_COUNT);
 
-export const createItemSchema = z
+export const createQuestSchema = z
   .object({
     title: z.string().trim().min(1).max(TITLE_MAX),
-    status: itemStatusSchema,
+    status: questStatusSchema,
     dueAt: dueAtCreate,
     tags: tagsSchema.optional().default([]),
     detail: z
@@ -51,10 +53,10 @@ export const createItemSchema = z
   })
   .strict();
 
-export const updateItemSchema = z
+export const updateQuestSchema = z
   .object({
     title: z.string().trim().min(1).max(TITLE_MAX).optional(),
-    status: itemStatusSchema.optional(),
+    status: questStatusSchema.optional(),
     position: z.number().int().nonnegative().optional(),
     dueAt: dueAtUpdate,
     tags: tagsSchema.optional(),
@@ -73,12 +75,12 @@ export const reorderSchema = z
       .array(
         z
           .object({
-            status: itemStatusSchema,
+            status: questStatusSchema,
             ids: z.array(z.string().uuid()).max(REORDER_MAX_IDS_PER_GROUP),
           })
           .strict(),
       )
-      .max(ITEM_STATUSES.length),
+      .max(QUEST_STATUSES.length),
   })
   .strict()
   .refine(
@@ -92,5 +94,5 @@ export const reorderSchema = z
       }
       return true;
     },
-    { message: "Duplicate item IDs across groups" },
+    { message: "Duplicate quest IDs across groups" },
   );

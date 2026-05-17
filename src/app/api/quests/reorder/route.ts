@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db/client";
-import type { ItemStatus } from "@/lib/items/types";
+import type { QuestStatus } from "@/lib/quests/types";
 import { checkOrigin } from "@/lib/security";
 import { getCurrentUserId } from "@/lib/supabase/server";
 import { reorderSchema } from "@/lib/validation";
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const updates: Array<{ id: string; status: ItemStatus; position: number }> =
+  const updates: Array<{ id: string; status: QuestStatus; position: number }> =
     [];
   for (const group of parsed.data.groups) {
     group.ids.forEach((id: string, position: number) => {
@@ -41,16 +41,16 @@ export async function POST(request: Request) {
   // prior per-row implementation, but one round-trip instead of N). Every row
   // is cast explicitly so Postgres never has to infer a bind-param's type.
   const valuesParts = updates.map(
-    (u) => sql`(${u.id}::uuid, ${u.status}::item_status, ${u.position}::int)`,
+    (u) => sql`(${u.id}::uuid, ${u.status}::quest_status, ${u.position}::int)`,
   );
 
   await db.execute(sql`
-    UPDATE items
+    UPDATE quests
     SET status = data.status,
         position = data.position,
         updated_at = NOW()
     FROM (VALUES ${sql.join(valuesParts, sql`, `)}) AS data(id, status, position)
-    WHERE items.id = data.id AND items.user_id = ${userId}::uuid
+    WHERE quests.id = data.id AND quests.user_id = ${userId}::uuid
   `);
 
   return NextResponse.json({ ok: true });
