@@ -23,19 +23,27 @@ function isSameDay(a: Date, b: Date) {
 function formatRelative(d: Date): string {
   const now = new Date();
   const diffMs = d.getTime() - now.getTime();
-  const diffDays = Math.round((startOfDay(d).getTime() - startOfDay(now).getTime()) / 86_400_000);
+  const diffDays = Math.round(
+    (startOfDay(d).getTime() - startOfDay(now).getTime()) / 86_400_000,
+  );
   const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
   if (Math.abs(diffMs) < 60_000) return "now";
-  if (Math.abs(diffMs) < 3_600_000) return rtf.format(Math.round(diffMs / 60_000), "minute");
-  if (Math.abs(diffDays) < 1) return rtf.format(Math.round(diffMs / 3_600_000), "hour");
+  if (Math.abs(diffMs) < 3_600_000)
+    return rtf.format(Math.round(diffMs / 60_000), "minute");
+  if (Math.abs(diffDays) < 1)
+    return rtf.format(Math.round(diffMs / 3_600_000), "hour");
   if (Math.abs(diffDays) < 7) return rtf.format(diffDays, "day");
-  if (Math.abs(diffDays) < 30) return rtf.format(Math.round(diffDays / 7), "week");
+  if (Math.abs(diffDays) < 30)
+    return rtf.format(Math.round(diffDays / 7), "week");
   return rtf.format(Math.round(diffDays / 30), "month");
 }
 
 function formatPretty(d: Date): string {
   const now = new Date();
-  const time = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  const time = d.toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
   if (isSameDay(d, now)) return `Today at ${time}`;
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -48,8 +56,18 @@ function formatPretty(d: Date): string {
 
 const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 function buildMonthGrid(viewMonth: Date): Date[] {
@@ -76,10 +94,18 @@ export function DueDateField({ value, status, onChange }: Props) {
 
   const initialDraft = useMemo(() => (value ? new Date(value) : null), [value]);
   const [draftDate, setDraftDate] = useState<Date | null>(initialDraft);
-  const [hour, setHour] = useState<number>(initialDraft ? initialDraft.getHours() : 21);
-  const [minute, setMinute] = useState<number>(initialDraft ? initialDraft.getMinutes() : 0);
+  const [hour, setHour] = useState<number>(
+    initialDraft ? initialDraft.getHours() : 21,
+  );
+  const [minute, setMinute] = useState<number>(
+    initialDraft ? initialDraft.getMinutes() : 0,
+  );
   const [viewMonth, setViewMonth] = useState<Date>(
-    new Date((initialDraft ?? new Date()).getFullYear(), (initialDraft ?? new Date()).getMonth(), 1),
+    new Date(
+      (initialDraft ?? new Date()).getFullYear(),
+      (initialDraft ?? new Date()).getMonth(),
+      1,
+    ),
   );
   const [pickerMode, setPickerMode] = useState<"days" | "years">("days");
 
@@ -89,7 +115,13 @@ export function DueDateField({ value, status, onChange }: Props) {
     setDraftDate(v);
     setHour(v ? v.getHours() : 21);
     setMinute(v ? v.getMinutes() : 0);
-    setViewMonth(new Date((v ?? new Date()).getFullYear(), (v ?? new Date()).getMonth(), 1));
+    setViewMonth(
+      new Date(
+        (v ?? new Date()).getFullYear(),
+        (v ?? new Date()).getMonth(),
+        1,
+      ),
+    );
     setPickerMode("days");
   }, [open, value]);
 
@@ -135,7 +167,12 @@ export function DueDateField({ value, status, onChange }: Props) {
           aria-expanded={open}
           className="flex flex-1 items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-left text-sm transition-colors hover:bg-surface-2"
         >
-          <svg className="h-4 w-4 text-faint" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <svg
+            className="h-4 w-4 text-faint"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
             <path d="M5.75 2a.75.75 0 01.75.75V4h7V2.75a.75.75 0 011.5 0V4h.25A2.75 2.75 0 0118 6.75v8.5A2.75 2.75 0 0115.25 18h-10.5A2.75 2.75 0 012 15.25v-8.5A2.75 2.75 0 014.75 4H5V2.75A.75.75 0 015.75 2zM4.75 5.5c-.69 0-1.25.56-1.25 1.25V8h13V6.75c0-.69-.56-1.25-1.25-1.25H4.75zM3.5 9.5v5.75c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25V9.5h-13z" />
           </svg>
           {date ? (
@@ -167,7 +204,12 @@ export function DueDateField({ value, status, onChange }: Props) {
             title="Clear due date"
             className="inline-flex h-auto w-9 shrink-0 items-center justify-center rounded-lg border border-danger-border bg-surface text-danger-text transition-colors hover:bg-danger-subtle"
           >
-            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
               <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
             </svg>
           </button>
@@ -181,21 +223,46 @@ export function DueDateField({ value, status, onChange }: Props) {
               type="button"
               onClick={() => {
                 if (pickerMode === "days") {
-                  setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1));
+                  setViewMonth(
+                    new Date(
+                      viewMonth.getFullYear(),
+                      viewMonth.getMonth() - 1,
+                      1,
+                    ),
+                  );
                 } else {
-                  setViewMonth(new Date(viewMonth.getFullYear() - 12, viewMonth.getMonth(), 1));
+                  setViewMonth(
+                    new Date(
+                      viewMonth.getFullYear() - 12,
+                      viewMonth.getMonth(),
+                      1,
+                    ),
+                  );
                 }
               }}
               className="flex h-7 w-7 items-center justify-center rounded-md text-faint transition-colors hover:bg-surface hover:text-fg"
-              aria-label={pickerMode === "days" ? "Previous month" : "Previous 12 years"}
+              aria-label={
+                pickerMode === "days" ? "Previous month" : "Previous 12 years"
+              }
             >
-              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M12.78 4.22a.75.75 0 010 1.06L8.06 10l4.72 4.72a.75.75 0 11-1.06 1.06l-5.25-5.25a.75.75 0 010-1.06l5.25-5.25a.75.75 0 011.06 0z" clipRule="evenodd" />
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M12.78 4.22a.75.75 0 010 1.06L8.06 10l4.72 4.72a.75.75 0 11-1.06 1.06l-5.25-5.25a.75.75 0 010-1.06l5.25-5.25a.75.75 0 011.06 0z"
+                  clipRule="evenodd"
+                />
               </svg>
             </button>
             <button
               type="button"
-              onClick={() => setPickerMode((m) => (m === "days" ? "years" : "days"))}
+              onClick={() =>
+                setPickerMode((m) => (m === "days" ? "years" : "days"))
+              }
               className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-fg transition-colors hover:bg-surface"
               aria-label="Switch to year picker"
             >
@@ -208,24 +275,56 @@ export function DueDateField({ value, status, onChange }: Props) {
                   {viewMonth.getFullYear() - 5} – {viewMonth.getFullYear() + 6}
                 </>
               )}
-              <svg className="h-3 w-3 text-faint" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M5.22 8.22a.75.75 0 011.06 0L10 11.94l3.72-3.72a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.22 9.28a.75.75 0 010-1.06z" clipRule="evenodd" />
+              <svg
+                className="h-3 w-3 text-faint"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M5.22 8.22a.75.75 0 011.06 0L10 11.94l3.72-3.72a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.22 9.28a.75.75 0 010-1.06z"
+                  clipRule="evenodd"
+                />
               </svg>
             </button>
             <button
               type="button"
               onClick={() => {
                 if (pickerMode === "days") {
-                  setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1));
+                  setViewMonth(
+                    new Date(
+                      viewMonth.getFullYear(),
+                      viewMonth.getMonth() + 1,
+                      1,
+                    ),
+                  );
                 } else {
-                  setViewMonth(new Date(viewMonth.getFullYear() + 12, viewMonth.getMonth(), 1));
+                  setViewMonth(
+                    new Date(
+                      viewMonth.getFullYear() + 12,
+                      viewMonth.getMonth(),
+                      1,
+                    ),
+                  );
                 }
               }}
               className="flex h-7 w-7 items-center justify-center rounded-md text-faint transition-colors hover:bg-surface hover:text-fg"
-              aria-label={pickerMode === "days" ? "Next month" : "Next 12 years"}
+              aria-label={
+                pickerMode === "days" ? "Next month" : "Next 12 years"
+              }
             >
-              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fillRule="evenodd" d="M7.22 4.22a.75.75 0 011.06 0l5.25 5.25a.75.75 0 010 1.06l-5.25 5.25a.75.75 0 11-1.06-1.06L11.94 10 7.22 5.28a.75.75 0 010-1.06z" clipRule="evenodd" />
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M7.22 4.22a.75.75 0 011.06 0l5.25 5.25a.75.75 0 010 1.06l-5.25 5.25a.75.75 0 11-1.06-1.06L11.94 10 7.22 5.28a.75.75 0 010-1.06z"
+                  clipRule="evenodd"
+                />
               </svg>
             </button>
           </div>
@@ -271,7 +370,10 @@ export function DueDateField({ value, status, onChange }: Props) {
             </>
           ) : (
             <div className="grid grid-cols-4 gap-1">
-              {Array.from({ length: 12 }, (_, i) => viewMonth.getFullYear() - 5 + i).map((y) => {
+              {Array.from(
+                { length: 12 },
+                (_, i) => viewMonth.getFullYear() - 5 + i,
+              ).map((y) => {
                 const isCurrent = y === new Date().getFullYear();
                 const isSelected = y === viewMonth.getFullYear();
                 return (
@@ -308,7 +410,11 @@ export function DueDateField({ value, status, onChange }: Props) {
                 min={0}
                 max={23}
                 value={String(hour).padStart(2, "0")}
-                onChange={(e) => setHour(clamp(parseInt(e.target.value || "0", 10) || 0, 0, 23))}
+                onChange={(e) =>
+                  setHour(
+                    clamp(parseInt(e.target.value || "0", 10) || 0, 0, 23),
+                  )
+                }
                 className="w-9 bg-transparent text-center text-sm text-fg outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 aria-label="Hour (0-23)"
               />
@@ -318,7 +424,11 @@ export function DueDateField({ value, status, onChange }: Props) {
                 min={0}
                 max={59}
                 value={String(minute).padStart(2, "0")}
-                onChange={(e) => setMinute(clamp(parseInt(e.target.value || "0", 10) || 0, 0, 59))}
+                onChange={(e) =>
+                  setMinute(
+                    clamp(parseInt(e.target.value || "0", 10) || 0, 0, 59),
+                  )
+                }
                 className="w-9 bg-transparent text-center text-sm text-fg outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 aria-label="Minute (0-59)"
               />

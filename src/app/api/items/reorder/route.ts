@@ -24,7 +24,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const updates: Array<{ id: string; status: ItemStatus; position: number }> = [];
+  const updates: Array<{ id: string; status: ItemStatus; position: number }> =
+    [];
   for (const group of parsed.data.groups) {
     group.ids.forEach((id: string, position: number) => {
       updates.push({ id, status: group.status, position });

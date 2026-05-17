@@ -153,7 +153,9 @@ export function Modal({
             hideHeaderBorder ? "" : "border-b border-border"
           }`}
         >
-          <h2 className="text-[15px] font-semibold tracking-tight text-fg">{title}</h2>
+          <h2 className="text-[15px] font-semibold tracking-tight text-fg">
+            {title}
+          </h2>
           {!hideClose && (
             <button
               type="button"
@@ -161,7 +163,12 @@ export function Modal({
               className="-mr-1 flex h-7 w-7 items-center justify-center rounded-md text-faint transition-colors hover:bg-surface hover:text-fg"
               aria-label="Close"
             >
-              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <svg
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
                 <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
               </svg>
             </button>

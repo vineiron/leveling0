@@ -18,7 +18,12 @@ type Props = {
 
 function PlusIcon() {
   return (
-    <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+    <svg
+      className="h-4 w-4"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      aria-hidden="true"
+    >
       <path d="M10 4a.75.75 0 01.75.75v4.5h4.5a.75.75 0 010 1.5h-4.5v4.5a.75.75 0 01-1.5 0v-4.5h-4.5a.75.75 0 010-1.5h4.5v-4.5A.75.75 0 0110 4z" />
     </svg>
   );
@@ -26,7 +31,12 @@ function PlusIcon() {
 
 function SearchIcon({ className = "h-4 w-4" }: { className?: string }) {
   return (
-    <svg className={className} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+    <svg
+      className={className}
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      aria-hidden="true"
+    >
       <path
         fillRule="evenodd"
         d="M9 3.5a5.5 5.5 0 103.4 9.82l3.14 3.13a.75.75 0 101.06-1.06l-3.13-3.14A5.5 5.5 0 009 3.5zM5 9a4 4 0 118 0 4 4 0 01-8 0z"
@@ -49,7 +59,9 @@ export function TopBar({
   // client-only and would otherwise mismatch SSR).
   const [isMac, setIsMac] = useState(true);
   useEffect(() => {
-    setIsMac(/mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent));
+    setIsMac(
+      /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent),
+    );
   }, []);
 
   return (
@@ -94,7 +106,10 @@ export function TopBar({
 
         <div className="flex items-center justify-self-end gap-1.5 sm:gap-2">
           <ThemeToggle />
-          <span className="hidden h-5 w-px bg-border md:block" aria-hidden="true" />
+          <span
+            className="hidden h-5 w-px bg-border md:block"
+            aria-hidden="true"
+          />
           {/* Desktop only — on mobile this lives in the page content. */}
           <span
             className="hidden items-center gap-1.5 rounded-full bg-surface px-2 py-0.5 text-[11px] font-medium text-muted md:inline-flex"

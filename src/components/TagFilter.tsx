@@ -57,7 +57,12 @@ export function TagFilter({ allTags, activeTags, onChange }: Props) {
             : "border-border bg-surface text-muted hover:bg-surface-2 hover:text-fg"
         }`}
       >
-        <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <svg
+          className="h-4 w-4"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
           <path d="M3 4.75A.75.75 0 013.75 4h12.5a.75.75 0 01.6 1.2L12 11.31V16a.75.75 0 01-1.17.62l-2.5-1.67A.75.75 0 018 14.33V11.3L3.15 5.2A.75.75 0 013 4.75z" />
         </svg>
         <span className="hidden sm:inline">
@@ -87,7 +92,12 @@ export function TagFilter({ allTags, activeTags, onChange }: Props) {
                   aria-label="Clear tag search"
                   className="absolute right-1 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-md text-faint hover:bg-surface-2 hover:text-fg"
                 >
-                  <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <svg
+                    className="h-3.5 w-3.5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
                     <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
                   </svg>
                 </button>
@@ -126,11 +136,18 @@ export function TagFilter({ allTags, activeTags, onChange }: Props) {
                   >
                     <span
                       className={`flex h-4 w-4 items-center justify-center rounded-md border transition-colors ${
-                        on ? "border-accent bg-accent text-accent-fg" : "border-border-strong"
+                        on
+                          ? "border-accent bg-accent text-accent-fg"
+                          : "border-border-strong"
                       }`}
                     >
                       {on && (
-                        <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <svg
+                          className="h-3 w-3"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                          aria-hidden="true"
+                        >
                           <path
                             fillRule="evenodd"
                             d="M16.7 5.3a1 1 0 010 1.4l-7.5 7.5a1 1 0 01-1.4 0L3.3 9.7a1 1 0 011.4-1.4L8.5 12l6.8-6.7a1 1 0 011.4 0z"

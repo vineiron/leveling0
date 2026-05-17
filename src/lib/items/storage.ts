@@ -31,7 +31,10 @@ function writeLocal(items: Item[]) {
 export type ItemStore = {
   list(): Promise<Item[]>;
   create(draft: ItemDraft): Promise<Item>;
-  update(id: string, patch: Partial<ItemDraft> & { position?: number }): Promise<Item>;
+  update(
+    id: string,
+    patch: Partial<ItemDraft> & { position?: number },
+  ): Promise<Item>;
   remove(id: string): Promise<void>;
   reorder(groups: Array<{ status: ItemStatus; ids: string[] }>): Promise<void>;
 };
@@ -91,7 +94,12 @@ export const localStore: ItemStore = {
         const it = map.get(id);
         if (!it) return;
         if (it.status !== group.status || it.position !== position) {
-          map.set(id, { ...it, status: group.status, position, updatedAt: now });
+          map.set(id, {
+            ...it,
+            status: group.status,
+            position,
+            updatedAt: now,
+          });
         }
       });
     }
@@ -119,7 +127,9 @@ async function jsonOrThrow(res: Response) {
 
 export const apiStore: ItemStore = {
   async list() {
-    const data = await jsonOrThrow(await fetch("/api/items", { cache: "no-store" }));
+    const data = await jsonOrThrow(
+      await fetch("/api/items", { cache: "no-store" }),
+    );
     return data.items as Item[];
   },
   async create(draft) {

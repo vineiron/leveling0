@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { apiStore, localStore, type ItemStore } from "./storage";
+import { apiStore, type ItemStore, localStore } from "./storage";
 import type { Item, ItemDraft, ItemStatus } from "./types";
 
 type ReorderGroups = Array<{ status: ItemStatus; ids: string[] }>;
@@ -38,7 +38,8 @@ export function useItems(): UseItems {
       const next = await store.list();
       if (my === reqId.current) setItems(next);
     } catch (e) {
-      if (my === reqId.current) setError(e instanceof Error ? e.message : String(e));
+      if (my === reqId.current)
+        setError(e instanceof Error ? e.message : String(e));
     } finally {
       if (my === reqId.current) setLoading(false);
     }

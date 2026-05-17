@@ -29,7 +29,9 @@ export const items = pgTable(
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("items_user_status_position_idx").on(t.userId, t.status, t.position)],
+  (t) => [
+    index("items_user_status_position_idx").on(t.userId, t.status, t.position),
+  ],
 );
 
 export type DbItem = typeof items.$inferSelect;

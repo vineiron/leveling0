@@ -11,9 +11,9 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useItems } from "@/lib/items/useItems";
 import type { Item, ItemStatus } from "@/lib/items/types";
 import { ITEM_STATUSES, STATUS_LABELS } from "@/lib/items/types";
+import { useItems } from "@/lib/items/useItems";
 import { FlameIcon } from "./BrandMark";
 import { Column } from "./Column";
 import { CommandPalette } from "./CommandPalette";
@@ -26,15 +26,28 @@ import { TagFilter } from "./TagFilter";
 import { TopBar } from "./TopBar";
 
 function groupByStatus(items: Item[]): Record<ItemStatus, Item[]> {
-  const out: Record<ItemStatus, Item[]> = { backlog: [], in_progress: [], done: [] };
+  const out: Record<ItemStatus, Item[]> = {
+    backlog: [],
+    in_progress: [],
+    done: [],
+  };
   for (const it of items) out[it.status].push(it);
   for (const s of ITEM_STATUSES) out[s].sort((a, b) => a.position - b.position);
   return out;
 }
 
 export function Board() {
-  const { items, loading, error, create, update, remove, previewReorder, commitReorder, mode } =
-    useItems();
+  const {
+    items,
+    loading,
+    error,
+    create,
+    update,
+    remove,
+    previewReorder,
+    commitReorder,
+    mode,
+  } = useItems();
 
   const [search, setSearch] = useState("");
   const [activeTags, setActiveTags] = useState<string[]>([]);
@@ -63,7 +76,8 @@ export function Board() {
       ) {
         const t = e.target as HTMLElement | null;
         const tag = t?.tagName;
-        if (tag === "INPUT" || tag === "TEXTAREA" || t?.isContentEditable) return;
+        if (tag === "INPUT" || tag === "TEXTAREA" || t?.isContentEditable)
+          return;
         e.preventDefault();
         setPaletteOpen(true);
       }
@@ -72,7 +86,9 @@ export function Board() {
     return () => document.removeEventListener("keydown", onKey);
   }, [paletteOpen, editing, adding]);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+  );
 
   const allTags = useMemo(() => {
     const set = new Set<string>();
@@ -146,7 +162,9 @@ export function Board() {
           ids.splice(insertAt, 0, activeId);
           return ids;
         })();
-    const fromIds = groupedAll[fromStatus].filter((i) => i.id !== activeId).map((i) => i.id);
+    const fromIds = groupedAll[fromStatus]
+      .filter((i) => i.id !== activeId)
+      .map((i) => i.id);
     applyPreview([
       { status: fromStatus, ids: fromIds },
       { status: toStatus, ids: targetIds },
@@ -173,10 +191,12 @@ export function Board() {
     }
 
     if (pendingGroupsRef.current.size > 0) {
-      const groups = [...pendingGroupsRef.current.entries()].map(([status, ids]) => ({
-        status,
-        ids,
-      }));
+      const groups = [...pendingGroupsRef.current.entries()].map(
+        ([status, ids]) => ({
+          status,
+          ids,
+        }),
+      );
       pendingGroupsRef.current.clear();
       void commitReorder(groups);
     }
@@ -218,7 +238,12 @@ export function Board() {
             role="alert"
             className="flex items-center gap-2 rounded-lg border border-danger-border bg-danger-subtle px-3 py-2.5 text-sm text-danger-text"
           >
-            <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <svg
+              className="h-4 w-4 shrink-0"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
               <path
                 fillRule="evenodd"
                 d="M10 2a8 8 0 100 16 8 8 0 000-16zm.75 4.75a.75.75 0 00-1.5 0v4a.75.75 0 001.5 0v-4zM10 13a1 1 0 100 2 1 1 0 000-2z"
@@ -289,7 +314,9 @@ export function Board() {
                 aria-selected={active}
                 onClick={() => setMobileTab(status)}
                 className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-1.5 py-1.5 text-xs font-medium transition-colors ${
-                  active ? "bg-elevated text-fg shadow-sm" : "text-muted hover:text-fg"
+                  active
+                    ? "bg-elevated text-fg shadow-sm"
+                    : "text-muted hover:text-fg"
                 }`}
               >
                 <StatusIcon status={status} className="h-3 w-3" />
@@ -308,7 +335,9 @@ export function Board() {
               <FlameIcon className="h-8 w-8" />
             </span>
             <div className="space-y-1">
-              <h2 className="text-base font-semibold text-fg">Light the first spark</h2>
+              <h2 className="text-base font-semibold text-fg">
+                Light the first spark
+              </h2>
               <p className="max-w-xs text-sm text-muted">
                 Your board is empty. Create an item to start tracking your work.
               </p>
@@ -319,7 +348,12 @@ export function Board() {
                 onClick={() => openCreate("backlog")}
                 className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-fg shadow-sm transition-all duration-150 ease-[cubic-bezier(.2,.9,.25,1)] hover:bg-accent-hover hover:shadow-[0_2px_14px_var(--accent-glow)] active:scale-[.97]"
               >
-                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <svg
+                  className="h-4 w-4"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
                   <path d="M10 4a.75.75 0 01.75.75v4.5h4.5a.75.75 0 010 1.5h-4.5v4.5a.75.75 0 01-1.5 0v-4.5h-4.5a.75.75 0 010-1.5h4.5v-4.5A.75.75 0 0110 4z" />
                 </svg>
                 Create your first item
@@ -388,7 +422,12 @@ export function Board() {
         aria-label="New item"
         className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-fg shadow-lg transition-all duration-150 ease-[cubic-bezier(.2,.9,.25,1)] hover:bg-accent-hover active:scale-95 md:hidden"
       >
-        <svg className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <svg
+          className="h-6 w-6"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
           <path d="M10 4a.75.75 0 01.75.75v4.5h4.5a.75.75 0 010 1.5h-4.5v4.5a.75.75 0 01-1.5 0v-4.5h-4.5a.75.75 0 010-1.5h4.5v-4.5A.75.75 0 0110 4z" />
         </svg>
       </button>

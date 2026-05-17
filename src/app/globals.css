@@ -300,9 +300,13 @@
     *,
     ::before,
     ::after {
+      /* biome-ignore lint/complexity/noImportantStyles: reduced-motion reset must override any animation/transition regardless of selector specificity (WCAG 2.3.3) */
       animation-duration: 0.001ms !important;
+      /* biome-ignore lint/complexity/noImportantStyles: reduced-motion reset must override regardless of specificity */
       animation-iteration-count: 1 !important;
+      /* biome-ignore lint/complexity/noImportantStyles: reduced-motion reset must override regardless of specificity */
       transition-duration: 0.001ms !important;
+      /* biome-ignore lint/complexity/noImportantStyles: reduced-motion reset must override regardless of specificity */
       scroll-behavior: auto !important;
     }
   }

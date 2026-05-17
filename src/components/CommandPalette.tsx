@@ -2,9 +2,9 @@
 
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth/AuthProvider";
-import { useTheme } from "@/lib/theme/ThemeProvider";
 import type { Item, ItemStatus } from "@/lib/items/types";
 import { ITEM_STATUSES, STATUS_LABELS } from "@/lib/items/types";
+import { useTheme } from "@/lib/theme/ThemeProvider";
 import { StatusIcon } from "./StatusIcon";
 
 type Props = {
@@ -31,13 +31,19 @@ type Entry = {
 
 function I({ d }: { d: string }) {
   return (
-    <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+    <svg
+      className="h-4 w-4"
+      viewBox="0 0 20 20"
+      fill="currentColor"
+      aria-hidden="true"
+    >
       <path d={d} />
     </svg>
   );
 }
 
-const PLUS = "M10 4a.75.75 0 01.75.75v4.5h4.5a.75.75 0 010 1.5h-4.5v4.5a.75.75 0 01-1.5 0v-4.5h-4.5a.75.75 0 010-1.5h4.5v-4.5A.75.75 0 0110 4z";
+const PLUS =
+  "M10 4a.75.75 0 01.75.75v4.5h4.5a.75.75 0 010 1.5h-4.5v4.5a.75.75 0 01-1.5 0v-4.5h-4.5a.75.75 0 010-1.5h4.5v-4.5A.75.75 0 0110 4z";
 const ARROW =
   "M3 10a.75.75 0 01.75-.75h9.69L10.22 6.03a.75.75 0 011.06-1.06l4.5 4.5a.75.75 0 010 1.06l-4.5 4.5a.75.75 0 11-1.06-1.06l3.22-3.22H3.75A.75.75 0 013 10z";
 const SUN =
@@ -155,12 +161,23 @@ export function CommandPalette({
       });
     }
     return list;
-  }, [user, theme, hasActiveFilters, onCreate, onClearFilters, onSignIn, setTheme, signOut]);
+  }, [
+    user,
+    theme,
+    hasActiveFilters,
+    onCreate,
+    onClearFilters,
+    onSignIn,
+    setTheme,
+    signOut,
+  ]);
 
   const results = useMemo<Entry[]>(() => {
     const q = query.trim().toLowerCase();
     const cmds = q
-      ? commands.filter((c) => `${c.label} ${c.keywords ?? ""}`.toLowerCase().includes(q))
+      ? commands.filter((c) =>
+          `${c.label} ${c.keywords ?? ""}`.toLowerCase().includes(q),
+        )
       : commands;
 
     const ranked = [...items].sort(
@@ -185,11 +202,15 @@ export function CommandPalette({
   }, [query, commands, items, onEditItem]);
 
   useEffect(() => {
-    setSelected((s) => (results.length === 0 ? 0 : Math.min(s, results.length - 1)));
+    setSelected((s) =>
+      results.length === 0 ? 0 : Math.min(s, results.length - 1),
+    );
   }, [results]);
 
   useEffect(() => {
-    const el = listRef.current?.querySelector<HTMLElement>(`[data-idx="${selected}"]`);
+    const el = listRef.current?.querySelector<HTMLElement>(
+      `[data-idx="${selected}"]`,
+    );
     el?.scrollIntoView({ block: "nearest" });
   }, [selected]);
 
@@ -206,7 +227,9 @@ export function CommandPalette({
       setSelected((s) => (results.length ? (s + 1) % results.length : 0));
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setSelected((s) => (results.length ? (s - 1 + results.length) % results.length : 0));
+      setSelected((s) =>
+        results.length ? (s - 1 + results.length) % results.length : 0,
+      );
     } else if (e.key === "Enter") {
       e.preventDefault();
       const entry = results[selected];
@@ -227,7 +250,6 @@ export function CommandPalette({
         onClick={onClose}
         className="absolute inset-0 animate-overlay-in bg-scrim backdrop-blur-[2px]"
       />
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard handled on the input */}
       <div
         role="dialog"
         aria-modal="true"
@@ -264,7 +286,10 @@ export function CommandPalette({
           </kbd>
         </div>
 
-        <div ref={listRef} className="max-h-[min(60vh,420px)] overflow-y-auto p-1.5">
+        <div
+          ref={listRef}
+          className="max-h-[min(60vh,420px)] overflow-y-auto p-1.5"
+        >
           {results.length === 0 ? (
             <div className="px-3 py-10 text-center text-sm text-muted">
               No results for{" "}
@@ -288,7 +313,9 @@ export function CommandPalette({
                     onMouseMove={() => setSelected(idx)}
                     onClick={() => exec(entry)}
                     className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors ${
-                      isSel ? "bg-accent-subtle text-fg" : "text-muted hover:bg-surface"
+                      isSel
+                        ? "bg-accent-subtle text-fg"
+                        : "text-muted hover:bg-surface"
                     }`}
                   >
                     <span
@@ -298,7 +325,9 @@ export function CommandPalette({
                     >
                       {entry.icon}
                     </span>
-                    <span className="flex-1 truncate text-fg">{entry.label}</span>
+                    <span className="flex-1 truncate text-fg">
+                      {entry.label}
+                    </span>
                     {entry.active && (
                       <span className="rounded-md border border-accent-border bg-accent-subtle px-1.5 py-0.5 text-[10px] font-medium text-accent-text">
                         Active
@@ -324,11 +353,15 @@ export function CommandPalette({
         <div className="flex items-center justify-between gap-3 border-t border-border bg-surface px-4 py-2 text-[11px] text-faint">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <kbd className="rounded-md border border-border bg-elevated px-1 py-0.5 font-mono">↑↓</kbd>
+              <kbd className="rounded-md border border-border bg-elevated px-1 py-0.5 font-mono">
+                ↑↓
+              </kbd>
               navigate
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="rounded-md border border-border bg-elevated px-1 py-0.5 font-mono">↵</kbd>
+              <kbd className="rounded-md border border-border bg-elevated px-1 py-0.5 font-mono">
+                ↵
+              </kbd>
               select
             </span>
           </div>

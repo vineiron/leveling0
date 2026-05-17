@@ -19,14 +19,24 @@ const MD_COMPONENTS: Components = {
     <h4 className="mb-1.5 mt-2 text-base font-semibold text-fg">{children}</h4>
   ),
   h5: ({ children }) => (
-    <h5 className="mb-1 mt-2 text-sm font-semibold uppercase tracking-wide text-fg">{children}</h5>
+    <h5 className="mb-1 mt-2 text-sm font-semibold uppercase tracking-wide text-fg">
+      {children}
+    </h5>
   ),
   h6: ({ children }) => (
-    <h6 className="mb-1 mt-2 text-xs font-semibold uppercase tracking-wide text-muted">{children}</h6>
+    <h6 className="mb-1 mt-2 text-xs font-semibold uppercase tracking-wide text-muted">
+      {children}
+    </h6>
   ),
-  p: ({ children }) => <p className="my-2 leading-relaxed text-fg">{children}</p>,
-  ul: ({ children }) => <ul className="my-2 list-disc space-y-1 pl-6 text-fg">{children}</ul>,
-  ol: ({ children }) => <ol className="my-2 list-decimal space-y-1 pl-6 text-fg">{children}</ol>,
+  p: ({ children }) => (
+    <p className="my-2 leading-relaxed text-fg">{children}</p>
+  ),
+  ul: ({ children }) => (
+    <ul className="my-2 list-disc space-y-1 pl-6 text-fg">{children}</ul>
+  ),
+  ol: ({ children }) => (
+    <ol className="my-2 list-decimal space-y-1 pl-6 text-fg">{children}</ol>
+  ),
   li: ({ children }) => <li className="leading-relaxed">{children}</li>,
   a: ({ href, children }) => (
     <a
@@ -44,7 +54,9 @@ const MD_COMPONENTS: Components = {
     </blockquote>
   ),
   hr: () => <hr className="my-3 border-border" />,
-  strong: ({ children }) => <strong className="font-bold text-fg">{children}</strong>,
+  strong: ({ children }) => (
+    <strong className="font-bold text-fg">{children}</strong>
+  ),
   em: ({ children }) => <em className="italic">{children}</em>,
   del: ({ children }) => <del className="line-through">{children}</del>,
   code: ({ className, children }) => {
@@ -76,7 +88,7 @@ const MD_COMPONENTS: Components = {
     <td className="border-b border-border px-2.5 py-1.5 text-fg">{children}</td>
   ),
   img: ({ src, alt }) => (
-    // Plain <img>: user-supplied URLs aren't whitelisted in next.config.ts.
+    // biome-ignore lint/performance/noImgElement: user-supplied markdown image URLs can't be allow-listed for next/image in next.config
     <img
       src={typeof src === "string" ? src : undefined}
       alt={alt ?? ""}
@@ -131,7 +143,11 @@ function Editor({
           <span className="text-sm font-medium text-muted">{label}</span>
         ) : null}
         <div className="flex items-center gap-1">
-          <div role="tablist" aria-label={`${label} mode`} className={segment.wrap}>
+          <div
+            role="tablist"
+            aria-label={`${label} mode`}
+            className={segment.wrap}
+          >
             <button
               type="button"
               role="tab"
@@ -159,7 +175,12 @@ function Editor({
               title="Expand"
               className="flex h-6 w-6 items-center justify-center rounded-md text-faint transition-colors hover:bg-surface hover:text-fg"
             >
-              <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <svg
+                className="h-3.5 w-3.5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
                 <path d="M3 3.75A.75.75 0 013.75 3h4a.75.75 0 010 1.5H5.56l3.22 3.22a.75.75 0 11-1.06 1.06L4.5 5.56V7.75a.75.75 0 01-1.5 0v-4zm14 12.5a.75.75 0 01-.75.75h-4a.75.75 0 010-1.5h2.19l-3.22-3.22a.75.75 0 111.06-1.06l3.22 3.22V12.25a.75.75 0 011.5 0v4zm-13.25.75a.75.75 0 01-.75-.75v-4a.75.75 0 011.5 0v2.19l3.22-3.22a.75.75 0 111.06 1.06L5.56 15.5h2.19a.75.75 0 010 1.5h-4zM16.25 3a.75.75 0 01.75.75v4a.75.75 0 01-1.5 0V5.56l-3.22 3.22a.75.75 0 11-1.06-1.06L14.44 4.5H12.25a.75.75 0 010-1.5h4z" />
               </svg>
             </button>
@@ -174,7 +195,10 @@ function Editor({
         >
           {value.trim() ? (
             <article className="text-sm">
-              <ReactMarkdown remarkPlugins={[remarkGfm]} components={MD_COMPONENTS}>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={MD_COMPONENTS}
+              >
                 {value}
               </ReactMarkdown>
             </article>

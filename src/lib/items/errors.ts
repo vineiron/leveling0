@@ -59,7 +59,9 @@ function describeIssue(issue: ZodIssue): string {
     case "custom":
       return issue.message ?? `${where} is invalid.`;
     default:
-      return issue.message ? `${where}: ${issue.message}` : `${where} is invalid.`;
+      return issue.message
+        ? `${where}: ${issue.message}`
+        : `${where} is invalid.`;
   }
 }
 

@@ -1,13 +1,14 @@
 type Props = {
   className?: string;
-  label?: string;
 };
 
-export function Spinner({ className = "h-4 w-4", label = "Loading" }: Props) {
+// Decorative: the spinner is always paired with adjacent status text
+// ("Saving…", "Syncing…", …), so it's hidden from assistive tech and the
+// surrounding text/live region carries the meaning.
+export function Spinner({ className = "h-4 w-4" }: Props) {
   return (
     <span
-      role="status"
-      aria-label={label}
+      aria-hidden="true"
       className={`inline-block animate-spin rounded-full border-2 border-current border-t-transparent ${className}`}
     />
   );

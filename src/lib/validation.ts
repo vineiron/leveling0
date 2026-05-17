@@ -20,7 +20,9 @@ const isoDateString = z
 const dueAtCreate = z
   .union([isoDateString, z.literal(""), z.null()])
   .optional()
-  .transform((v) => (typeof v === "string" && v.length > 0 ? new Date(v) : null));
+  .transform((v) =>
+    typeof v === "string" && v.length > 0 ? new Date(v) : null,
+  );
 
 const dueAtUpdate = z
   .union([isoDateString, z.literal(""), z.null()])

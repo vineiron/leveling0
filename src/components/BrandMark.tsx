@@ -24,7 +24,10 @@ type BrandMarkProps = {
   withWordmark?: boolean;
 };
 
-export function BrandMark({ className = "", withWordmark = true }: BrandMarkProps) {
+export function BrandMark({
+  className = "",
+  withWordmark = true,
+}: BrandMarkProps) {
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <FlameIcon className="h-[18px] w-[18px] shrink-0 text-accent-text" />

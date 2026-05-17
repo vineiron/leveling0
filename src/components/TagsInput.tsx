@@ -9,7 +9,12 @@ type Props = {
   placeholder?: string;
 };
 
-export function TagsInput({ value, onChange, suggestions = [], placeholder }: Props) {
+export function TagsInput({
+  value,
+  onChange,
+  suggestions = [],
+  placeholder,
+}: Props) {
   const [draft, setDraft] = useState("");
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -42,7 +47,8 @@ export function TagsInput({ value, onChange, suggestions = [], placeholder }: Pr
   }
 
   const showSuggestions = focused && filteredSuggestions.length > 0;
-  const exactExists = suggestions.includes(draft.trim()) || value.includes(draft.trim());
+  const exactExists =
+    suggestions.includes(draft.trim()) || value.includes(draft.trim());
 
   return (
     <div ref={wrapRef} className="relative flex flex-col gap-1.5">
@@ -63,7 +69,12 @@ export function TagsInput({ value, onChange, suggestions = [], placeholder }: Pr
               className="-mr-0.5 flex h-4 w-4 items-center justify-center rounded-full text-faint transition-colors hover:bg-danger-subtle hover:text-danger-text"
               aria-label={`Remove ${tag}`}
             >
-              <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <svg
+                className="h-3 w-3"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
                 <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
               </svg>
             </button>
@@ -95,7 +106,12 @@ export function TagsInput({ value, onChange, suggestions = [], placeholder }: Pr
           aria-label="Add tag"
           className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-faint transition-colors hover:bg-surface-2 hover:text-accent-text disabled:opacity-40"
         >
-          <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <svg
+            className="h-4 w-4"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
             <path d="M10 4a.75.75 0 01.75.75v4.5h4.5a.75.75 0 010 1.5h-4.5v4.5a.75.75 0 01-1.5 0v-4.5h-4.5a.75.75 0 010-1.5h4.5v-4.5A.75.75 0 0110 4z" />
           </svg>
         </button>
