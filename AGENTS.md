@@ -6,6 +6,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Rules
 
+- When do UI and UX, do it based on design system, if not clear ask first. 
 - No need to do claude launch, no need to launch dev server. Specially the claude launch thing.
 - Never give commit message with co authored by claude.
 - Ask questions if there are things need to be clarified first, specially when requirements are ambiguous or/and not sure when on giving answer.

@@ -45,21 +45,27 @@ export function TagsInput({ value, onChange, suggestions = [], placeholder }: Pr
   const exactExists = suggestions.includes(draft.trim()) || value.includes(draft.trim());
 
   return (
-    <div ref={wrapRef} className="relative flex flex-col gap-1">
-      <div className="flex flex-wrap items-center gap-1 rounded-md border border-zinc-300 bg-white px-2 py-1.5 dark:border-zinc-700 dark:bg-zinc-950">
+    <div ref={wrapRef} className="relative flex flex-col gap-1.5">
+      <div
+        className={`flex flex-wrap items-center gap-1.5 rounded-lg border bg-surface px-2 py-1.5 transition-colors ${
+          focused ? "border-accent ring-2 ring-ring" : "border-border"
+        }`}
+      >
         {value.map((tag) => (
           <span
             key={tag}
-            className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-xs text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200"
+            className="inline-flex items-center gap-1 rounded-md bg-elevated px-2 py-0.5 text-[11px] font-medium text-fg"
           >
             {tag}
             <button
               type="button"
               onClick={() => onChange(value.filter((t) => t !== tag))}
-              className="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+              className="-mr-0.5 flex h-4 w-4 items-center justify-center rounded-full text-faint transition-colors hover:bg-danger-subtle hover:text-danger-text"
               aria-label={`Remove ${tag}`}
             >
-              ×
+              <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
+              </svg>
             </button>
           </span>
         ))}
@@ -80,29 +86,29 @@ export function TagsInput({ value, onChange, suggestions = [], placeholder }: Pr
             }
           }}
           placeholder={placeholder ?? "Add tag…"}
-          className="flex-1 min-w-[6rem] bg-transparent px-1 py-0.5 text-sm text-zinc-900 outline-none dark:text-zinc-100"
+          className="min-w-[6rem] flex-1 bg-transparent px-1 py-0.5 text-sm text-fg outline-none placeholder:text-faint"
         />
         <button
           type="button"
           onClick={() => commit()}
           disabled={!draft.trim()}
           aria-label="Add tag"
-          className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-40 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+          className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-faint transition-colors hover:bg-surface-2 hover:text-accent-text disabled:opacity-40"
         >
           <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path d="M10 4a.75.75 0 01.75.75v4.5h4.5a.75.75 0 010 1.5h-4.5v4.5a.75.75 0 01-1.5 0v-4.5h-4.5a.75.75 0 010-1.5h4.5v-4.5A.75.75 0 0110 4z" />
           </svg>
         </button>
       </div>
-      <p className="text-[10px] text-zinc-500 dark:text-zinc-500">
+      <p className="text-[11px] text-faint">
         Press Enter, comma, or click + to add a tag.
       </p>
       {showSuggestions && (
-        <div className="absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
-          <div className="border-b border-zinc-200 px-3 py-1 text-[10px] font-medium uppercase tracking-wide text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+        <div className="absolute left-0 right-0 top-full z-20 mt-1.5 origin-top animate-pop-in overflow-hidden rounded-xl border border-border bg-elevated shadow-lg">
+          <div className="border-b border-border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-faint">
             {draft.trim() ? "Matching tags" : "Existing tags"}
           </div>
-          <ul className="max-h-44 overflow-auto py-1">
+          <ul className="max-h-44 overflow-auto p-1">
             {filteredSuggestions.map((s) => (
               <li key={s}>
                 <button
@@ -111,31 +117,31 @@ export function TagsInput({ value, onChange, suggestions = [], placeholder }: Pr
                     e.preventDefault();
                     commit(s);
                   }}
-                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-zinc-800 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm text-fg transition-colors hover:bg-surface"
                 >
                   <span className="truncate">{s}</span>
                 </button>
               </li>
             ))}
             {draft.trim() && !exactExists && (
-              <li>
+              <li className="mt-1 border-t border-border pt-1">
                 <button
                   type="button"
                   onMouseDown={(e) => {
                     e.preventDefault();
                     commit();
                   }}
-                  className="flex w-full items-center gap-2 border-t border-zinc-200 px-3 py-1.5 text-left text-sm text-zinc-800 hover:bg-zinc-100 dark:border-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm text-fg transition-colors hover:bg-surface"
                 >
                   <svg
-                    className="h-3.5 w-3.5 shrink-0 text-zinc-500 dark:text-zinc-400"
+                    className="h-3.5 w-3.5 shrink-0 text-accent-text"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                     aria-hidden="true"
                   >
                     <path d="M10 4a.75.75 0 01.75.75v4.5h4.5a.75.75 0 010 1.5h-4.5v4.5a.75.75 0 01-1.5 0v-4.5h-4.5a.75.75 0 010-1.5h4.5v-4.5A.75.75 0 0110 4z" />
                   </svg>
-                  <span className="text-zinc-500 dark:text-zinc-400">Create</span>
+                  <span className="text-muted">Create</span>
                   <span className="font-medium">“{draft.trim()}”</span>
                 </button>
               </li>

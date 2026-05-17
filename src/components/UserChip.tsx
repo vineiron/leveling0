@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { Modal } from "./Modal";
 import { Spinner } from "./Spinner";
+import { btn } from "./ui";
 
 function pickAvatarUrl(meta: Record<string, unknown> | undefined): string | null {
   if (!meta) return null;
@@ -74,15 +75,15 @@ export function UserChip({ onSignInClick }: Props) {
       <button
         type="button"
         onClick={onSignInClick}
-        className="flex items-center gap-2 rounded-full border border-zinc-300 bg-white px-2 py-1.5 text-sm text-zinc-700 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
+        className="flex items-center gap-2 rounded-full border border-border bg-elevated py-1 pl-1 pr-3 text-sm text-muted transition-colors hover:bg-surface hover:text-fg"
         title="Sign in"
       >
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-200 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-          <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-surface-2 text-faint">
+          <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 8a7 7 0 1114 0H3z" />
           </svg>
         </span>
-        <span className="pr-1 text-xs">Guest · Sign in</span>
+        <span className="text-xs font-medium">Sign in</span>
       </button>
     );
   }
@@ -126,28 +127,40 @@ export function UserChip({ onSignInClick }: Props) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-full border border-zinc-300 bg-white px-2 py-1.5 text-sm text-zinc-800 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
+        className="flex items-center gap-2 rounded-full border border-border bg-elevated py-1 pl-1 pr-2.5 text-sm text-fg transition-colors hover:bg-surface"
         aria-haspopup="menu"
         aria-expanded={open}
       >
         <Avatar size={24} />
-        <span className="pr-1 text-xs font-mono">{redactEmail(email)}</span>
+        <span className="hidden font-mono text-xs text-muted sm:inline">
+          {redactEmail(email)}
+        </span>
+        <svg
+          className="h-3.5 w-3.5 text-faint"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.22 8.22a.75.75 0 011.06 0L10 11.94l3.72-3.72a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.22 9.28a.75.75 0 010-1.06z"
+            clipRule="evenodd"
+          />
+        </svg>
       </button>
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-40 mt-1 w-64 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900"
+          className="absolute right-0 z-40 mt-1.5 w-64 origin-top-right animate-pop-in overflow-hidden rounded-xl border border-border bg-elevated shadow-lg"
         >
-          <div className="flex items-center gap-2 border-b border-zinc-200 px-3 py-2 dark:border-zinc-800">
-            <Avatar size={32} />
+          <div className="flex items-center gap-2.5 border-b border-border px-3 py-3">
+            <Avatar size={36} />
             <div className="min-w-0 flex-1">
               {fullName && (
-                <div className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                  {fullName}
-                </div>
+                <div className="truncate text-sm font-medium text-fg">{fullName}</div>
               )}
               <div className="flex items-center gap-1">
-                <div className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap text-xs text-zinc-700 [scrollbar-width:thin] dark:text-zinc-300">
+                <div className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap text-xs text-muted [scrollbar-width:thin]">
                   {revealEmail ? email : redactEmail(email)}
                 </div>
                 <button
@@ -155,7 +168,7 @@ export function UserChip({ onSignInClick }: Props) {
                   onClick={() => setRevealEmail((v) => !v)}
                   aria-label={revealEmail ? "Hide email" : "Show email"}
                   aria-pressed={revealEmail}
-                  className="ml-auto shrink-0 rounded p-0.5 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+                  className="ml-auto flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-faint transition-colors hover:bg-surface hover:text-fg"
                 >
                   {revealEmail ? (
                     <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -172,16 +185,21 @@ export function UserChip({ onSignInClick }: Props) {
               </div>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              setConfirmOpen(true);
-            }}
-            className="block w-full px-3 py-2 text-left text-sm text-zinc-800 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
-          >
-            Sign out
-          </button>
+          <div className="p-1">
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                setConfirmOpen(true);
+              }}
+              className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm text-fg transition-colors hover:bg-surface"
+            >
+              <svg className="h-4 w-4 text-faint" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path d="M9 3a.75.75 0 000 1.5H6.25a.75.75 0 00-.75.75v9.5c0 .41.34.75.75.75H9A.75.75 0 019 17H6.25A2.25 2.25 0 014 14.75v-9.5A2.25 2.25 0 016.25 3H9zm4.72 3.97a.75.75 0 011.06 0l2.5 2.5a.75.75 0 010 1.06l-2.5 2.5a.75.75 0 11-1.06-1.06l1.22-1.22H9a.75.75 0 010-1.5h5.94l-1.22-1.22a.75.75 0 010-1.06z" />
+              </svg>
+              Sign out
+            </button>
+          </div>
         </div>
       )}
 
@@ -194,15 +212,17 @@ export function UserChip({ onSignInClick }: Props) {
         widthClass="max-w-sm"
         hideHeaderBorder
       >
-        <p className="text-sm text-zinc-700 dark:text-zinc-300">
-          You'll be signed out of <span className="font-medium">{email}</span>. Your synced items stay safe in the cloud.
+        <p className="text-sm text-muted">
+          You&apos;ll be signed out of{" "}
+          <span className="font-medium text-fg">{email}</span>. Your synced items stay safe in
+          the cloud.
         </p>
-        <div className="mt-4 flex justify-end gap-2">
+        <div className="mt-5 flex justify-end gap-2">
           <button
             type="button"
             onClick={() => setConfirmOpen(false)}
             disabled={signingOut}
-            className="rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-800 hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+            className={btn.secondary}
           >
             Cancel
           </button>
@@ -210,7 +230,7 @@ export function UserChip({ onSignInClick }: Props) {
             type="button"
             onClick={handleConfirmSignOut}
             disabled={signingOut}
-            className="inline-flex items-center gap-2 rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+            className={btn.dangerSolid}
           >
             {signingOut && <Spinner className="h-3.5 w-3.5" />}
             {signingOut ? "Signing out…" : "Sign out"}

@@ -14,13 +14,16 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useItems } from "@/lib/items/useItems";
 import type { Item, ItemStatus } from "@/lib/items/types";
 import { ITEM_STATUSES, STATUS_LABELS } from "@/lib/items/types";
+import { FlameIcon } from "./BrandMark";
 import { Column } from "./Column";
+import { CommandPalette } from "./CommandPalette";
 import { ItemModal } from "./ItemModal";
 import { LoginModal } from "./LoginModal";
 import { SkeletonCard } from "./SkeletonCard";
+import { StatusIcon } from "./StatusIcon";
 import { SyncingPill } from "./SyncingPill";
-import { ThemeToggle } from "./ThemeToggle";
-import { UserChip } from "./UserChip";
+import { TagFilter } from "./TagFilter";
+import { TopBar } from "./TopBar";
 
 function groupByStatus(items: Item[]): Record<ItemStatus, Item[]> {
   const out: Record<ItemStatus, Item[]> = { backlog: [], in_progress: [], done: [] };
@@ -38,27 +41,36 @@ export function Board() {
   const [editing, setEditing] = useState<Item | null>(null);
   const [adding, setAdding] = useState<ItemStatus | null>(null);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState<ItemStatus>("backlog");
-  const [filterOpen, setFilterOpen] = useState(false);
-  const [tagQuery, setTagQuery] = useState("");
-  const tagSearchRef = useRef<HTMLInputElement | null>(null);
-  const filterWrapRef = useRef<HTMLDivElement | null>(null);
 
+  // Global shortcuts: ⌘/Ctrl-K and "/" both open the command palette, which
+  // is now the single place to search items and run actions.
   useEffect(() => {
-    if (!filterOpen) return;
-    function onDoc(e: MouseEvent) {
-      if (!filterWrapRef.current?.contains(e.target as Node)) setFilterOpen(false);
-    }
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setFilterOpen(false);
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+        return;
+      }
+      if (
+        e.key === "/" &&
+        !e.metaKey &&
+        !e.ctrlKey &&
+        !paletteOpen &&
+        editing === null &&
+        adding === null
+      ) {
+        const t = e.target as HTMLElement | null;
+        const tag = t?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || t?.isContentEditable) return;
+        e.preventDefault();
+        setPaletteOpen(true);
+      }
     }
-    document.addEventListener("mousedown", onDoc);
     document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDoc);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [filterOpen]);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [paletteOpen, editing, adding]);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -67,12 +79,6 @@ export function Board() {
     for (const it of items) for (const t of it.tags) set.add(t);
     return [...set].sort();
   }, [items]);
-
-  const visibleTagOptions = useMemo(() => {
-    const q = tagQuery.trim().toLowerCase();
-    if (!q) return allTags;
-    return allTags.filter((t) => t.toLowerCase().includes(q));
-  }, [allTags, tagQuery]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -94,6 +100,8 @@ export function Board() {
 
   const isFirstLoad = loading && items.length === 0;
   const isBackgroundSync = loading && items.length > 0;
+  const hasActiveFilters = search.trim().length > 0 || activeTags.length > 0;
+  const isEmptyBoard = !loading && items.length === 0;
 
   // Pending reorder state accumulated across onDragOver, committed once on drop.
   const pendingGroupsRef = useRef<Map<ItemStatus, string[]>>(new Map());
@@ -182,249 +190,222 @@ export function Board() {
     }
   }
 
+  function openCreate(status: ItemStatus) {
+    setEditing(null);
+    setAdding(status);
+  }
+
+  function openEdit(it: Item) {
+    setAdding(null);
+    setEditing(it);
+  }
+
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 sm:p-6">
-      <header className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">leveling0</h1>
-        <div className="flex flex-col items-end gap-1">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setAdding(mobileTab)}
-              className="inline-flex items-center gap-1.5 rounded-md bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-            >
-              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path d="M10 4a.75.75 0 01.75.75v4.5h4.5a.75.75 0 010 1.5h-4.5v4.5a.75.75 0 01-1.5 0v-4.5h-4.5a.75.75 0 010-1.5h4.5v-4.5A.75.75 0 0110 4z" />
-              </svg>
-              New item
-            </button>
-            <ThemeToggle />
-            <UserChip onSignInClick={() => setLoginOpen(true)} />
-          </div>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            {mode === "remote" ? "Synced to your account" : "Guest — saved locally only"}
-          </p>
-        </div>
-      </header>
+    <div className="flex flex-1 flex-col">
+      <TopBar
+        mode={mode}
+        allTags={allTags}
+        activeTags={activeTags}
+        onActiveTagsChange={setActiveTags}
+        onNewItem={() => openCreate(mobileTab)}
+        onOpenPalette={() => setPaletteOpen(true)}
+        onSignInClick={() => setLoginOpen(true)}
+      />
 
-      <div className="flex items-center gap-2 sm:justify-end">
-        <div ref={filterWrapRef} className="relative flex items-center">
-          <button
-            type="button"
-            onClick={() => {
-              if (allTags.length === 0) return;
-              setFilterOpen((v) => !v);
-              setTimeout(() => tagSearchRef.current?.focus(), 0);
-            }}
-            disabled={allTags.length === 0}
-            aria-label="Filter by tags"
-            aria-expanded={filterOpen}
-            className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-zinc-300 bg-white text-zinc-600 hover:bg-zinc-100 disabled:opacity-40 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800"
-            title={allTags.length === 0 ? "No tags yet" : "Filter by tags"}
+      <main className="mx-auto flex w-full max-w-[1500px] flex-1 flex-col gap-4 px-4 py-5 sm:px-6">
+        {error && (
+          <div
+            role="alert"
+            className="flex items-center gap-2 rounded-lg border border-danger-border bg-danger-subtle px-3 py-2.5 text-sm text-danger-text"
           >
-            <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-              <path d="M3 4.75A.75.75 0 013.75 4h12.5a.75.75 0 01.6 1.2L12 11.31V16a.75.75 0 01-1.17.62l-2.5-1.67A.75.75 0 018 14.33V11.3L3.15 5.2A.75.75 0 013 4.75z" />
+            <svg className="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path
+                fillRule="evenodd"
+                d="M10 2a8 8 0 100 16 8 8 0 000-16zm.75 4.75a.75.75 0 00-1.5 0v4a.75.75 0 001.5 0v-4zM10 13a1 1 0 100 2 1 1 0 000-2z"
+                clipRule="evenodd"
+              />
             </svg>
-            {activeTags.length > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-zinc-900 px-1 text-[10px] font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">
-                {activeTags.length}
+            {error}
+          </div>
+        )}
+
+        {!isEmptyBoard && (
+          <div className="flex flex-col gap-4 md:hidden">
+            <div className="flex justify-end">
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full bg-surface px-2 py-0.5 text-[11px] font-medium text-muted"
+                title={
+                  mode === "remote"
+                    ? "Items sync to your account"
+                    : "Items are saved in this browser only"
+                }
+              >
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    mode === "remote" ? "bg-accent-text" : "bg-faint"
+                  }`}
+                />
+                {mode === "remote" ? "Synced" : "Local only"}
               </span>
-            )}
-          </button>
-          {filterOpen && allTags.length > 0 && (
-            <div className="absolute left-0 top-full z-30 mt-1 w-72 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900">
-              <div className="flex items-center gap-2 border-b border-zinc-200 px-2 py-2 dark:border-zinc-800">
-                <div className="relative flex-1">
-                  <input
-                    ref={tagSearchRef}
-                    value={tagQuery}
-                    onChange={(e) => setTagQuery(e.target.value)}
-                    placeholder="Search tags…"
-                    className="w-full rounded-md border border-zinc-300 bg-white px-2 py-1 pr-7 text-sm text-zinc-900 outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setPaletteOpen(true)}
+                aria-label="Search items or run a command"
+                className="group flex h-9 flex-1 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm text-muted transition-colors hover:bg-surface-2"
+              >
+                <svg
+                  className="h-4 w-4 shrink-0 text-faint transition-colors group-hover:text-muted"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M9 3.5a5.5 5.5 0 103.4 9.82l3.14 3.13a.75.75 0 101.06-1.06l-3.13-3.14A5.5 5.5 0 009 3.5zM5 9a4 4 0 118 0 4 4 0 01-8 0z"
+                    clipRule="evenodd"
                   />
-                  {tagQuery && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setTagQuery("");
-                        tagSearchRef.current?.focus();
-                      }}
-                      aria-label="Clear tag search"
-                      className="absolute right-1 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-                    >
-                      <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-                {activeTags.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setActiveTags([])}
-                    className="shrink-0 text-xs text-zinc-500 hover:underline dark:text-zinc-400"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
-              <ul className="max-h-64 overflow-auto py-1">
-                {visibleTagOptions.length === 0 && (
-                  <li className="px-3 py-2 text-xs text-zinc-500 dark:text-zinc-400">
-                    {tagQuery ? `No tags match “${tagQuery}”` : "No tags yet"}
-                  </li>
-                )}
-                {visibleTagOptions.map((t) => {
-                  const on = activeTags.includes(t);
-                  return (
-                    <li key={t}>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setActiveTags((prev) =>
-                            prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t],
-                          )
-                        }
-                        className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-zinc-800 hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
-                      >
-                        <span
-                          className={`flex h-4 w-4 items-center justify-center rounded border ${
-                            on
-                              ? "border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900"
-                              : "border-zinc-300 dark:border-zinc-700"
-                          }`}
-                        >
-                          {on && (
-                            <svg className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                              <path
-                                fillRule="evenodd"
-                                d="M16.7 5.3a1 1 0 010 1.4l-7.5 7.5a1 1 0 01-1.4 0L3.3 9.7a1 1 0 011.4-1.4L8.5 12l6.8-6.7a1 1 0 011.4 0z"
-                                clipRule="evenodd"
-                              />
-                            </svg>
-                          )}
-                        </span>
-                        <span className="truncate">{t}</span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+                </svg>
+                <span className="flex-1 truncate text-left">Search items…</span>
+              </button>
+              <TagFilter
+                allTags={allTags}
+                activeTags={activeTags}
+                onChange={setActiveTags}
+              />
             </div>
-          )}
-        </div>
-        <div className="relative w-full sm:max-w-sm">
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search title, detail, note…"
-            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 pr-9 text-sm text-zinc-900 outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-          />
-          {search && (
-            <button
-              type="button"
-              onClick={() => setSearch("")}
-              aria-label="Clear search"
-              className="absolute right-1.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-            >
-              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z" />
-              </svg>
-            </button>
-          )}
-        </div>
-      </div>
+          </div>
+        )}
 
-      {error && (
-        <div className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
-          {error}
+        <div className="flex gap-1.5 md:hidden" role="tablist">
+          {ITEM_STATUSES.map((status) => {
+            const active = status === mobileTab;
+            return (
+              <button
+                key={status}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setMobileTab(status)}
+                className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-1.5 py-1.5 text-xs font-medium transition-colors ${
+                  active ? "bg-elevated text-fg shadow-sm" : "text-muted hover:text-fg"
+                }`}
+              >
+                <StatusIcon status={status} className="h-3 w-3" />
+                <span className="truncate">{STATUS_LABELS[status]}</span>
+                <span className="shrink-0 rounded-full bg-surface-2 px-1.5 py-0.5 text-[10px] text-muted">
+                  {grouped[status].length}
+                </span>
+              </button>
+            );
+          })}
         </div>
-      )}
 
-      <div className="flex gap-1 rounded-lg bg-zinc-100 p-1 md:hidden dark:bg-zinc-900/50" role="tablist">
-        {ITEM_STATUSES.map((status) => {
-          const active = status === mobileTab;
-          return (
-            <button
-              key={status}
-              type="button"
-              role="tab"
-              aria-selected={active}
-              onClick={() => setMobileTab(status)}
-              className={`flex flex-1 items-center justify-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
-                active
-                  ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-zinc-100"
-                  : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-              }`}
-            >
-              {STATUS_LABELS[status]}
-              <span className="rounded-full bg-zinc-200 px-1.5 py-0.5 text-[10px] text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300">
-                {grouped[status].length}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
-      {isFirstLoad ? (
-        <div className="flex flex-1 flex-col gap-3 md:grid md:grid-cols-3">
-          {ITEM_STATUSES.map((status) => (
-            <div
-              key={status}
-              className={`${status === mobileTab ? "flex" : "hidden"} flex-1 flex-col md:flex`}
-            >
-              <div className="flex min-w-0 flex-1 flex-col rounded-xl bg-zinc-100 p-3 dark:bg-zinc-900/50">
-                <div className="mb-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                      {STATUS_LABELS[status]}
-                    </h3>
-                  </div>
-                </div>
-                <div className="flex flex-1 flex-col gap-2 rounded-md p-1">
-                  <SkeletonCard />
-                  <SkeletonCard lines={1} />
-                  <SkeletonCard />
-                </div>
-              </div>
+        {isEmptyBoard ? (
+          <div className="flex flex-1 flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-border py-20 text-center">
+            <span className="flex h-16 w-16 items-center justify-center rounded-full bg-accent-subtle text-accent-text">
+              <FlameIcon className="h-8 w-8" />
+            </span>
+            <div className="space-y-1">
+              <h2 className="text-base font-semibold text-fg">Light the first spark</h2>
+              <p className="max-w-xs text-sm text-muted">
+                Your board is empty. Create an item to start tracking your work.
+              </p>
             </div>
-          ))}
-        </div>
-      ) : (
-        <DndContext
-          sensors={sensors}
-          onDragStart={onDragStart}
-          onDragOver={onDragOver}
-          onDragEnd={onDragEnd}
-          onDragCancel={() => {
-            pendingGroupsRef.current.clear();
-          }}
-        >
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => openCreate("backlog")}
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-fg shadow-sm transition-all duration-150 ease-[cubic-bezier(.2,.9,.25,1)] hover:bg-accent-hover hover:shadow-[0_2px_14px_var(--accent-glow)] active:scale-[.97]"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path d="M10 4a.75.75 0 01.75.75v4.5h4.5a.75.75 0 010 1.5h-4.5v4.5a.75.75 0 01-1.5 0v-4.5h-4.5a.75.75 0 010-1.5h4.5v-4.5A.75.75 0 0110 4z" />
+                </svg>
+                Create your first item
+              </button>
+            </div>
+          </div>
+        ) : isFirstLoad ? (
           <div className="flex flex-1 flex-col gap-3 md:grid md:grid-cols-3">
             {ITEM_STATUSES.map((status) => (
               <div
                 key={status}
                 className={`${status === mobileTab ? "flex" : "hidden"} flex-1 flex-col md:flex`}
               >
-                <Column
-                  status={status}
-                  items={grouped[status]}
-                  onAdd={(s) => {
-                    setEditing(null);
-                    setAdding(s);
-                  }}
-                  onEdit={(it) => {
-                    setAdding(null);
-                    setEditing(it);
-                  }}
-                />
+                <div className="flex min-w-0 flex-1 flex-col gap-2.5 rounded-2xl bg-surface p-2.5">
+                  <div className="flex items-center gap-2 px-1.5 py-1">
+                    <StatusIcon status={status} className="h-3.5 w-3.5" />
+                    <h3 className="text-[13px] font-semibold text-fg">
+                      {STATUS_LABELS[status]}
+                    </h3>
+                  </div>
+                  <div className="flex flex-1 flex-col gap-2">
+                    <SkeletonCard />
+                    <SkeletonCard lines={1} />
+                    <SkeletonCard />
+                  </div>
+                </div>
               </div>
             ))}
           </div>
-        </DndContext>
-      )}
+        ) : (
+          <DndContext
+            sensors={sensors}
+            onDragStart={onDragStart}
+            onDragOver={onDragOver}
+            onDragEnd={onDragEnd}
+            onDragCancel={() => {
+              pendingGroupsRef.current.clear();
+            }}
+          >
+            <div className="flex flex-1 flex-col gap-3 md:grid md:grid-cols-3">
+              {ITEM_STATUSES.map((status) => (
+                <div
+                  key={status}
+                  className={`${status === mobileTab ? "flex" : "hidden"} flex-1 flex-col md:flex`}
+                >
+                  <Column
+                    status={status}
+                    items={grouped[status]}
+                    filtered={hasActiveFilters}
+                    onAdd={openCreate}
+                    onEdit={openEdit}
+                  />
+                </div>
+              ))}
+            </div>
+          </DndContext>
+        )}
+      </main>
 
       {isBackgroundSync && <SyncingPill />}
+
+      {/* Mobile primary action — stays reachable while the content scrolls. */}
+      <button
+        type="button"
+        onClick={() => openCreate(mobileTab)}
+        aria-label="New item"
+        className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-accent-fg shadow-lg transition-all duration-150 ease-[cubic-bezier(.2,.9,.25,1)] hover:bg-accent-hover active:scale-95 md:hidden"
+      >
+        <svg className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path d="M10 4a.75.75 0 01.75.75v4.5h4.5a.75.75 0 010 1.5h-4.5v4.5a.75.75 0 01-1.5 0v-4.5h-4.5a.75.75 0 010-1.5h4.5v-4.5A.75.75 0 0110 4z" />
+        </svg>
+      </button>
+
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        items={items}
+        onCreate={openCreate}
+        onEditItem={openEdit}
+        onSignIn={() => setLoginOpen(true)}
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={() => {
+          setSearch("");
+          setActiveTags([]);
+        }}
+      />
 
       <ItemModal
         open={editing !== null || adding !== null}

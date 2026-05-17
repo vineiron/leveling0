@@ -9,8 +9,11 @@ import { MarkdownField } from "./MarkdownField";
 import { Modal } from "./Modal";
 import { Spinner } from "./Spinner";
 import { TagsInput } from "./TagsInput";
+import { btn, field } from "./ui";
 
 const DRAFT_KEY_PREFIX = "leveling0:draft:";
+
+const FIELD_CLASS = `w-full ${field}`;
 
 type StoredDraft = {
   title: string;
@@ -83,6 +86,9 @@ export function ItemModal({
   const [errors, setErrors] = useState<string[]>([]);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [restoredAt, setRestoredAt] = useState<number | null>(null);
+  // When set, the dialog swaps the whole form for a focused full-height
+  // editor of just this field (no second/stacked modal).
+  const [focusedField, setFocusedField] = useState<"note" | "detail" | null>(null);
 
   const draftKey = useMemo(
     () => `${DRAFT_KEY_PREFIX}${initial ? `edit:${initial.id}` : "new"}`,
@@ -148,6 +154,7 @@ export function ItemModal({
     skipNextSaveRef.current = true;
     setErrors([]);
     setConfirmDeleteOpen(false);
+    setFocusedField(null);
   }, [open, draftKey, baseValues]);
 
   // Debounced auto-save while modal is open and form differs from base.
@@ -246,49 +253,133 @@ export function ItemModal({
   return (
     <Modal
       open={open}
-      onClose={onClose}
-      title={initial ? "Edit item" : "New item"}
+      onClose={focusedField ? () => setFocusedField(null) : onClose}
+      title={
+        focusedField === "detail"
+          ? "Detail"
+          : focusedField === "note"
+            ? "Note"
+            : initial
+              ? "Edit item"
+              : "New item"
+      }
       widthClass="max-w-5xl"
+      heightClass="h-[85vh]"
+      hideHeaderBorder
+      hideFooterBorder
+      hideClose={Boolean(focusedField)}
+      footer={
+        focusedField ? undefined : (
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            {onDelete && (
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteOpen(true)}
+                disabled={busy}
+                className={btn.danger}
+              >
+                Delete
+              </button>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <button type="button" onClick={onClose} className={btn.secondary}>
+              Cancel
+            </button>
+            <button type="submit" form="item-form" disabled={busy} className={btn.primary}>
+              {busy && <Spinner className="h-3.5 w-3.5" />}
+              {busy ? "Saving…" : "Save"}
+            </button>
+          </div>
+        </div>
+        )
+      }
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+      {focusedField ? (
+        <div className="flex h-[72vh] flex-col">
+          <MarkdownField
+            label={focusedField === "detail" ? "Detail *" : "Note"}
+            value={focusedField === "detail" ? detail : note}
+            onChange={focusedField === "detail" ? setDetail : setNote}
+            fillHeight
+            required={focusedField === "detail"}
+            hideLabel
+            headerLeft={
+              <button
+                type="button"
+                onClick={() => setFocusedField(null)}
+                className="-ml-1.5 inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-sm font-medium text-muted transition-colors hover:bg-surface hover:text-fg"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path
+                    fillRule="evenodd"
+                    d="M12.78 4.22a.75.75 0 010 1.06L8.06 10l4.72 4.72a.75.75 0 11-1.06 1.06l-5.25-5.25a.75.75 0 010-1.06l5.25-5.25a.75.75 0 011.06 0z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                Back
+              </button>
+            }
+          />
+        </div>
+      ) : (
+      <form id="item-form" onSubmit={handleSubmit} className="flex flex-col gap-3">
         {restoredAt !== null && (
-          <div className="flex items-center justify-between gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
-            <span>
-              Restored auto-saved draft from {relativeAgo(restoredAt)}.
-            </span>
+          <div className="flex flex-col gap-2.5 rounded-lg bg-warning-subtle px-3 py-2.5 text-warning-text sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-2">
+              <svg
+                className="h-4 w-4 shrink-0"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z" />
+              </svg>
+              <div className="text-xs leading-snug">
+                <p className="font-semibold">Draft restored</p>
+                <p>Recovered unsaved changes from {relativeAgo(restoredAt)}.</p>
+              </div>
+            </div>
             <button
               type="button"
               onClick={discardDraft}
-              className="font-medium underline-offset-2 hover:underline"
+              className="w-full shrink-0 rounded-md border border-warning-border bg-elevated px-2.5 py-2.5 text-xs font-medium text-warning-text transition-colors hover:bg-warning-border sm:w-auto sm:self-auto sm:py-1.5"
             >
               Discard draft
             </button>
           </div>
         )}
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:items-stretch">
-          <div className="flex flex-col gap-3">
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="text-zinc-700 dark:text-zinc-300">
-                Title <span className="text-red-600 dark:text-red-400">*</span>
+        {/* On a single (mobile) column the order is Title, Status/Due, Tags,
+            Detail, Note — i.e. Detail and Note swapped vs. authoring order so
+            the primary Detail field comes first of the two. On lg the original
+            two-column layout (meta left, tall Detail right) is rebuilt via
+            explicit grid placement. */}
+        <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:gap-4">
+          <div className="flex flex-col gap-3.5 lg:col-start-1 lg:row-start-1">
+            <label className="flex flex-col gap-1.5 text-sm">
+              <span className="font-medium text-muted">
+                Title <span className="text-danger-text">*</span>
               </span>
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
-                className="rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                placeholder="What needs to be done?"
+                className={FIELD_CLASS}
               />
             </label>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <label className="flex flex-col gap-1 text-sm">
-                <span className="text-zinc-700 dark:text-zinc-300">
-                  Status <span className="text-red-600 dark:text-red-400">*</span>
+            <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
+              <label className="flex flex-col gap-1.5 text-sm">
+                <span className="font-medium text-muted">
+                  Status <span className="text-danger-text">*</span>
                 </span>
                 <div className="relative">
                   <select
                     value={status}
                     onChange={(e) => setStatus(e.target.value as ItemStatus)}
-                    className="w-full appearance-none rounded-md border border-zinc-300 bg-white px-3 py-2 pr-9 text-sm text-zinc-900 outline-none focus:border-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
+                    className={`w-full appearance-none pr-9 ${FIELD_CLASS}`}
                   >
                     {ITEM_STATUSES.map((s) => (
                       <option key={s} value={s}>
@@ -297,7 +388,7 @@ export function ItemModal({
                     ))}
                   </select>
                   <svg
-                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500 dark:text-zinc-400"
+                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-faint"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                     aria-hidden="true"
@@ -310,27 +401,36 @@ export function ItemModal({
                   </svg>
                 </div>
               </label>
-              <div className="flex flex-col gap-1 text-sm">
-                <span className="text-zinc-700 dark:text-zinc-300">Due date & time</span>
-                <DueDateField value={dueAt} onChange={setDueAt} />
+              <div className="flex flex-col gap-1.5 text-sm">
+                <span className="font-medium text-muted">Due date &amp; time</span>
+                <DueDateField value={dueAt} status={status} onChange={setDueAt} />
               </div>
             </div>
 
-            <div className="flex flex-col gap-1 text-sm">
-              <span className="text-zinc-700 dark:text-zinc-300">Tags</span>
+            <div className="flex flex-col gap-1.5 text-sm">
+              <span className="font-medium text-muted">Tags</span>
               <TagsInput value={tags} onChange={setTags} suggestions={allTags} />
             </div>
-
-            <MarkdownField label="Note" value={note} onChange={setNote} rows={13} />
           </div>
 
-          <div className="flex h-[24rem] flex-col overflow-hidden lg:h-[60vh]">
+          <div className="flex h-[24rem] flex-col overflow-hidden lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:h-[60vh]">
             <MarkdownField
               label="Detail *"
               value={detail}
               onChange={setDetail}
               fillHeight
               required
+              onExpand={() => setFocusedField("detail")}
+            />
+          </div>
+
+          <div className="lg:col-start-1 lg:row-start-2 lg:min-h-0">
+            <MarkdownField
+              label="Note"
+              value={note}
+              onChange={setNote}
+              rows={13}
+              onExpand={() => setFocusedField("note")}
             />
           </div>
         </div>
@@ -338,7 +438,7 @@ export function ItemModal({
         {errors.length > 0 && (
           <div
             role="alert"
-            className="max-h-32 overflow-auto rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300"
+            className="max-h-32 overflow-auto rounded-lg border border-danger-border bg-danger-subtle px-3 py-2.5 text-sm text-danger-text"
           >
             {errors.length === 1 ? (
               <p>{errors[0]}</p>
@@ -355,38 +455,8 @@ export function ItemModal({
           </div>
         )}
 
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <div>
-            {onDelete && (
-              <button
-                type="button"
-                onClick={() => setConfirmDeleteOpen(true)}
-                disabled={busy}
-                className="rounded-md border border-red-300 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950"
-              >
-                Delete
-              </button>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-800 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={busy}
-              className="inline-flex items-center gap-2 rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-            >
-              {busy && <Spinner className="h-3.5 w-3.5" />}
-              {busy ? "Saving..." : "Save"}
-            </button>
-          </div>
-        </div>
       </form>
+      )}
 
       <Modal
         open={confirmDeleteOpen}
@@ -397,15 +467,17 @@ export function ItemModal({
         widthClass="max-w-sm"
         hideHeaderBorder
       >
-        <p className="text-sm text-zinc-700 dark:text-zinc-300">
-          This will permanently delete <span className="font-medium">{initial?.title || "this item"}</span>. This action can't be undone.
+        <p className="text-sm text-muted">
+          This will permanently delete{" "}
+          <span className="font-medium text-fg">{initial?.title || "this item"}</span>. This
+          action can&apos;t be undone.
         </p>
-        <div className="mt-4 flex justify-end gap-2">
+        <div className="mt-5 flex justify-end gap-2">
           <button
             type="button"
             onClick={() => setConfirmDeleteOpen(false)}
             disabled={busy}
-            className="rounded-md border border-zinc-300 px-3 py-2 text-sm text-zinc-800 hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+            className={btn.secondary}
           >
             Cancel
           </button>
@@ -413,7 +485,7 @@ export function ItemModal({
             type="button"
             onClick={handleConfirmDelete}
             disabled={busy}
-            className="inline-flex items-center gap-2 rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+            className={btn.dangerSolid}
           >
             {busy && <Spinner className="h-3.5 w-3.5" />}
             {busy ? "Deleting…" : "Delete"}

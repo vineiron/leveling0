@@ -2,6 +2,7 @@
 
 import { type ReactNode, useEffect, useState } from "react";
 import { type Theme, useTheme } from "@/lib/theme/ThemeProvider";
+import { segment } from "./ui";
 
 const iconClass = "h-4 w-4";
 
@@ -42,12 +43,9 @@ export function ThemeToggle() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
   return (
-    <div
-      role="group"
-      aria-label="Theme"
-      className="flex gap-0.5 rounded-md bg-zinc-100 p-0.5 dark:bg-zinc-800"
-    >
+    <div role="group" aria-label="Theme" className={segment.wrap}>
       {OPTIONS.map((o) => {
         const active = mounted && theme === o.value;
         return (
@@ -58,11 +56,7 @@ export function ThemeToggle() {
             aria-pressed={active}
             aria-label={o.label}
             title={`${o.label} theme`}
-            className={`flex h-7 w-7 items-center justify-center rounded transition-colors ${
-              active
-                ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-950 dark:text-zinc-100"
-                : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-            }`}
+            className={segment.iconItem(active)}
           >
             {o.icon}
           </button>

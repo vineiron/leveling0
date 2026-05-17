@@ -1,31 +1,309 @@
 @import "tailwindcss";
 
 /* Class-based dark mode: `dark:` utilities apply under a `.dark` ancestor
-   (toggled on <html> by the theme script/provider) instead of the
+   (toggled on <html> by the no-flash script / ThemeProvider) rather than the
    prefers-color-scheme media query. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ----------------------------------------------------------------------------
+   leveling0 design tokens — "Fire": Linear-grade structure, ember identity.
+   Raw, theme-swappable values live in :root / .dark. They are mapped into
+   Tailwind's utility namespaces via @theme inline below, so components only
+   ever speak in semantic tokens (bg-canvas, text-muted, bg-accent, …).
+---------------------------------------------------------------------------- */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
   color-scheme: light;
-}
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --canvas: #fbfaf9;
+  --surface: #f3f2f0;
+  --surface-2: #eceae7;
+  --elevated: #ffffff;
+
+  --fg: #1b1a18;
+  --muted: #6c6a64;
+  --faint: #9b9890;
+
+  --border: #e7e5e1;
+  --border-strong: #d6d3cd;
+
+  /* Ember brand. `accent` = solid fill (white text, ~5:1 on it).
+     `accent-text` = the ember used AS text/icon/border on canvas. */
+  --accent: #dc3f14;
+  --accent-hover: #c0360f;
+  --accent-fg: #ffffff;
+  --accent-text: #c23a10;
+  --accent-subtle: #fceae2;
+  --accent-border: #f1b49a;
+  --accent-glow: rgb(220 63 20 / 0.32);
+
+  /* Danger kept a distinct cool-leaning crimson so it never reads as "brand". */
+  --danger: #e5484d;
+  --danger-hover: #ce363b;
+  --danger-fg: #ffffff;
+  --danger-text: #c62a2f;
+  --danger-subtle: #fdecec;
+  --danger-border: #f3b5b7;
+
+  --warning-text: #9a6a00;
+  --warning-subtle: #fcf1da;
+  --warning-border: #ead08c;
+
+  /* Calm green reserved for the "done"/complete signal only. */
+  --success: #1f9d57;
+  --success-text: #157f43;
+  --success-subtle: #e7f6ec;
+  --success-border: #a7dcbb;
+
+  /* Amber reserved for the "in progress" status signal only. */
+  --progress: #d99b00;
+
+  --ring: rgb(220 63 20 / 0.45);
+  --scrim: rgb(28 20 14 / 0.45);
+
+  --sh-xs: 0 1px 1px rgb(20 16 12 / 0.04);
+  --sh-sm: 0 1px 2px rgb(20 16 12 / 0.06), 0 1px 3px rgb(20 16 12 / 0.05);
+  --sh-md: 0 2px 4px rgb(20 16 12 / 0.06), 0 4px 12px rgb(20 16 12 / 0.07);
+  --sh-lg: 0 4px 10px rgb(20 16 12 / 0.07), 0 12px 28px rgb(20 16 12 / 0.1);
+  --sh-xl: 0 8px 20px rgb(20 16 12 / 0.1), 0 24px 56px rgb(20 16 12 / 0.16);
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
   color-scheme: dark;
+
+  --canvas: #0b0b0c;
+  --surface: #141416;
+  --surface-2: #1a1a1d;
+  --elevated: #1d1d20;
+
+  --fg: #ecebe8;
+  --muted: #9b9992;
+  --faint: #6b6a64;
+
+  --border: #2a2a2d;
+  --border-strong: #3b3b40;
+
+  --accent: #e8480f;
+  --accent-hover: #f2541b;
+  --accent-fg: #ffffff;
+  --accent-text: #ff7a45;
+  --accent-subtle: rgb(242 84 27 / 0.16);
+  --accent-border: rgb(242 84 27 / 0.42);
+  --accent-glow: rgb(242 84 27 / 0.45);
+
+  --danger: #e5484d;
+  --danger-hover: #f2555a;
+  --danger-fg: #ffffff;
+  --danger-text: #ff8084;
+  --danger-subtle: rgb(229 72 77 / 0.16);
+  --danger-border: rgb(229 72 77 / 0.4);
+
+  --warning-text: #e3b341;
+  --warning-subtle: rgb(227 179 65 / 0.14);
+  --warning-border: rgb(227 179 65 / 0.34);
+
+  --success: #2fae6a;
+  --success-text: #43c97f;
+  --success-subtle: rgb(47 174 106 / 0.16);
+  --success-border: rgb(47 174 106 / 0.4);
+
+  --progress: #f2c14e;
+
+  --ring: rgb(255 122 69 / 0.5);
+  --scrim: rgb(0 0 0 / 0.62);
+
+  --sh-xs: 0 1px 1px rgb(0 0 0 / 0.4);
+  --sh-sm: 0 1px 2px rgb(0 0 0 / 0.5), 0 1px 3px rgb(0 0 0 / 0.4);
+  --sh-md: 0 2px 6px rgb(0 0 0 / 0.5), 0 6px 16px rgb(0 0 0 / 0.45);
+  --sh-lg: 0 6px 16px rgb(0 0 0 / 0.5), 0 16px 40px rgb(0 0 0 / 0.55);
+  --sh-xl: 0 10px 28px rgb(0 0 0 / 0.55), 0 28px 64px rgb(0 0 0 / 0.65);
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-elevated: var(--elevated);
+
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-text: var(--accent-text);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-accent-border: var(--accent-border);
+
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-danger-fg: var(--danger-fg);
+  --color-danger-text: var(--danger-text);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-danger-border: var(--danger-border);
+
+  --color-warning-text: var(--warning-text);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-warning-border: var(--warning-border);
+
+  --color-success: var(--success);
+  --color-success-text: var(--success-text);
+  --color-success-subtle: var(--success-subtle);
+  --color-success-border: var(--success-border);
+
+  --color-progress: var(--progress);
+
+  --color-ring: var(--ring);
+  --color-scrim: var(--scrim);
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-2xl: 18px;
+
+  --shadow-xs: var(--sh-xs);
+  --shadow-sm: var(--sh-sm);
+  --shadow-md: var(--sh-md);
+  --shadow-lg: var(--sh-lg);
+  --shadow-xl: var(--sh-xl);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", monospace;
+
+  --animate-fade-in: fade-in 0.16s ease-out both;
+  --animate-overlay-in: overlay-in 0.16s ease-out both;
+  --animate-panel-in: panel-in 0.2s cubic-bezier(0.2, 0.9, 0.25, 1) both;
+  --animate-pop-in: pop-in 0.16s cubic-bezier(0.2, 0.9, 0.25, 1) both;
+  --animate-hint-up: hint-up 0.9s ease-in-out infinite;
+  --animate-hint-down: hint-down 0.9s ease-in-out infinite;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Subtle, looping shimmer for the scroll hints. Symmetric around the
+   resting position so the chevron stays vertically centered rather than
+   drifting toward an edge. */
+@keyframes hint-up {
+  0%,
+  100% {
+    transform: translateY(1px);
+  }
+  50% {
+    transform: translateY(-1px);
+  }
+}
+
+@keyframes hint-down {
+  0%,
+  100% {
+    transform: translateY(-1px);
+  }
+  50% {
+    transform: translateY(1px);
+  }
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border);
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background: var(--canvas);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+
+  /* Thin, token-tinted scrollbars. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background: var(--faint);
+    background-clip: padding-box;
+  }
+
+  /* Single, consistent keyboard-focus treatment for non-form controls.
+     Inputs/textareas/selects opt out — they style their own focus ring. */
+  :where(a, button, [role="button"], [tabindex]):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }
