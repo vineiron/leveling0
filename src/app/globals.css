@@ -57,6 +57,12 @@
   /* Amber reserved for the "in progress" status signal only. */
   --progress: #d99b00;
 
+  /* Quest status glyphs (StatusIcon). Tuned per theme for legibility
+     on the canvas, not raw hex: aged-parchment, vermilion, gold. */
+  --quest-log: #9c7b48;
+  --quest-pursuit: #cf3a2f;
+  --quest-conquered: #c79518;
+
   --ring: rgb(220 63 20 / 0.45);
   --scrim: rgb(28 20 14 / 0.45);
 
@@ -108,6 +114,10 @@
 
   --progress: #f2c14e;
 
+  --quest-log: #cdb083;
+  --quest-pursuit: #f37367;
+  --quest-conquered: #f0c64e;
+
   --ring: rgb(255 122 69 / 0.5);
   --scrim: rgb(0 0 0 / 0.62);
 
@@ -155,6 +165,10 @@
   --color-success-border: var(--success-border);
 
   --color-progress: var(--progress);
+
+  --color-quest-log: var(--quest-log);
+  --color-quest-pursuit: var(--quest-pursuit);
+  --color-quest-conquered: var(--quest-conquered);
 
   --color-ring: var(--ring);
   --color-scrim: var(--scrim);
