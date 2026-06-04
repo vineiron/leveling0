@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 type IconProps = { className?: string };
 
 /** The ember glyph — leveling0's identity mark. Inherits `currentColor`. */
@@ -30,7 +32,14 @@ export function BrandMark({
 }: BrandMarkProps) {
   return (
     <div className={`flex items-center gap-2 ${className}`}>
-      <FlameIcon className="h-[18px] w-[18px] shrink-0 text-accent-text" />
+      <Image
+        src="/brand/leveling0-mark-128.png"
+        alt={withWordmark ? "" : "leveling0"}
+        width={20}
+        height={20}
+        priority
+        className="h-5 w-5 shrink-0"
+      />
       {withWordmark && (
         <span className="text-[15px] font-semibold tracking-tight text-fg">
           leveling0
