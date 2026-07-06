@@ -47,10 +47,10 @@ export function QuestCard({ quest, onEdit }: Props) {
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative overflow-hidden rounded-xl border bg-elevated p-3 shadow-xs transition-[transform,box-shadow,border-color] duration-150 ease-[cubic-bezier(.2,.9,.25,1)] ${
+      className={`group relative overflow-hidden rounded-xl bg-elevated p-3 shadow-xs transition-[transform,box-shadow] duration-150 ease-[cubic-bezier(.2,.9,.25,1)] ${
         isDragging
-          ? "border-accent-border opacity-60 shadow-lg"
-          : "border-border hover:-translate-y-0.5 hover:border-border-strong hover:shadow-md"
+          ? "opacity-60 shadow-lg"
+          : "hover:-translate-y-0.5 hover:shadow-md"
       }`}
     >
       <span

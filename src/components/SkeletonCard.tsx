@@ -6,7 +6,7 @@ export function SkeletonCard({ lines = 2 }: Props) {
   return (
     <div
       aria-hidden="true"
-      className="animate-pulse rounded-xl border border-border bg-elevated p-3 shadow-xs"
+      className="animate-pulse rounded-xl bg-elevated p-3 shadow-xs"
     >
       <div className="flex items-start gap-2">
         <div className="mt-0.5 h-4 w-4 shrink-0 rounded-md bg-surface-2" />
