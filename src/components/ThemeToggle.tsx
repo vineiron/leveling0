@@ -1,7 +1,7 @@
 "use client";
 
 import { type ReactNode, useEffect, useState } from "react";
-import { type Theme, useTheme } from "@/lib/theme/ThemeProvider";
+import { type ResolvedTheme, useTheme } from "@/lib/theme/ThemeProvider";
 import { segment } from "./ui";
 
 const iconClass = "h-4 w-4";
@@ -17,21 +17,6 @@ const SunIcon = (
   </svg>
 );
 
-const MonitorIcon = (
-  <svg
-    className={iconClass}
-    viewBox="0 0 20 20"
-    fill="currentColor"
-    aria-hidden="true"
-  >
-    <path
-      fillRule="evenodd"
-      d="M3 4.75A1.75 1.75 0 014.75 3h10.5A1.75 1.75 0 0117 4.75v7.5A1.75 1.75 0 0115.25 14h-3.5v1.5h2a.75.75 0 010 1.5h-7.5a.75.75 0 010-1.5h2V14h-3.5A1.75 1.75 0 013 12.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h10.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25H4.75z"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
 const MoonIcon = (
   <svg
     className={iconClass}
@@ -43,14 +28,13 @@ const MoonIcon = (
   </svg>
 );
 
-const OPTIONS: { value: Theme; label: string; icon: ReactNode }[] = [
+const OPTIONS: { value: ResolvedTheme; label: string; icon: ReactNode }[] = [
   { value: "light", label: "Light", icon: SunIcon },
-  { value: "system", label: "System", icon: MonitorIcon },
   { value: "dark", label: "Dark", icon: MoonIcon },
 ];
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   // Gate the active highlight until mounted: SSR doesn't know the stored
   // preference, so reflecting it pre-hydration would mismatch. Colors are
   // already correct via the inline script; only this highlight settles.
@@ -63,7 +47,7 @@ export function ThemeToggle() {
     // biome-ignore lint/a11y/useSemanticElements: a labelled 3-button theme switch is a valid ARIA group; <fieldset> is for form field groups
     <div role="group" aria-label="Theme" className={segment.wrap}>
       {OPTIONS.map((o) => {
-        const active = mounted && theme === o.value;
+        const active = mounted && resolvedTheme === o.value;
         return (
           <button
             key={o.value}

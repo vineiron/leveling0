@@ -50,8 +50,6 @@ const SUN =
   "M10 3a.75.75 0 01.75.75v1a.75.75 0 01-1.5 0v-1A.75.75 0 0110 3zm0 11a4 4 0 100-8 4 4 0 000 8zm6.36-9.36a.75.75 0 010 1.06l-.7.7a.75.75 0 11-1.07-1.06l.71-.7a.75.75 0 011.06 0zM17 9.25a.75.75 0 010 1.5h-1a.75.75 0 010-1.5h1zM4.34 4.34a.75.75 0 011.06 0l.7.7a.75.75 0 11-1.06 1.07l-.7-.71a.75.75 0 010-1.06zM4 9.25a.75.75 0 010 1.5H3a.75.75 0 010-1.5h1zm1.4 5.3a.75.75 0 011.06 1.06l-.7.7a.75.75 0 11-1.07-1.06l.71-.7zm9.2 0l.7.7a.75.75 0 11-1.06 1.07l-.7-.71a.75.75 0 011.06-1.06zM10 15.25a.75.75 0 01.75.75v1a.75.75 0 01-1.5 0v-1a.75.75 0 01.75-.75z";
 const MOON =
   "M9.353 2.939a.75.75 0 01.157.808 6 6 0 007.743 7.743.75.75 0 01.965.965A7.5 7.5 0 119.353 2.94z";
-const MONITOR =
-  "M3 4.75A1.75 1.75 0 014.75 3h10.5A1.75 1.75 0 0117 4.75v7.5A1.75 1.75 0 0115.25 14h-3.5v1.5h2a.75.75 0 010 1.5h-7.5a.75.75 0 010-1.5h2V14h-3.5A1.75 1.75 0 013 12.25v-7.5z";
 const FILTER_X =
   "M3 4.75A.75.75 0 013.75 4h12.5a.75.75 0 01.6 1.2L12 11.31V16a.75.75 0 01-1.17.62l-2.5-1.67A.75.75 0 018 14.33V11.3L3.15 5.2A.75.75 0 013 4.75z";
 const SIGN_IN =
@@ -70,7 +68,7 @@ export function CommandPalette({
   onClearFilters,
 }: Props) {
   const { user, signOut } = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(0);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -118,17 +116,8 @@ export function CommandPalette({
         label: "Light theme",
         keywords: "appearance color mode",
         icon: <I d={SUN} />,
-        active: theme === "light",
+        active: resolvedTheme === "light",
         run: () => setTheme("light"),
-      },
-      {
-        id: "theme:system",
-        group: "View",
-        label: "System theme",
-        keywords: "appearance color mode auto",
-        icon: <I d={MONITOR} />,
-        active: theme === "system",
-        run: () => setTheme("system"),
       },
       {
         id: "theme:dark",
@@ -136,7 +125,7 @@ export function CommandPalette({
         label: "Dark theme",
         keywords: "appearance color mode",
         icon: <I d={MOON} />,
-        active: theme === "dark",
+        active: resolvedTheme === "dark",
         run: () => setTheme("dark"),
       },
     );
@@ -164,7 +153,7 @@ export function CommandPalette({
     return list;
   }, [
     user,
-    theme,
+    resolvedTheme,
     hasActiveFilters,
     onCreate,
     onClearFilters,

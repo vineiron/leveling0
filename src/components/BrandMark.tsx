@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 type IconProps = { className?: string };
 
@@ -31,7 +32,10 @@ export function BrandMark({
   withWordmark = true,
 }: BrandMarkProps) {
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <Link
+      href="/"
+      className={`flex items-center gap-2 rounded-md outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring ${className}`}
+    >
       <Image
         src="/brand/leveling0-mark-128.png"
         alt={withWordmark ? "" : "leveling0"}
@@ -45,6 +49,6 @@ export function BrandMark({
           leveling0
         </span>
       )}
-    </div>
+    </Link>
   );
 }
