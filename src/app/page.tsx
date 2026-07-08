@@ -62,7 +62,7 @@ export default function Home() {
       </section>
 
       <footer className="border-t border-border/60 dark:border-white/5">
-        <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-3 px-4 py-6 text-xs text-faint sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="mx-auto flex w-full max-w-[1180px] flex-col items-center gap-3 px-4 py-6 text-center text-xs text-faint sm:flex-row sm:justify-between sm:px-6">
           <p>© 2026 vineiron. All rights reserved.</p>
           <nav aria-label="Footer links" className="flex items-center gap-4">
             <Link
