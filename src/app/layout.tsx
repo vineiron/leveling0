@@ -18,9 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "leveling0",
-  description:
-    "A local-first quest board for turning messy personal work into small, trackable progress.",
+  title: "leveling0 - less messy leveling",
 };
 
 export default function RootLayout({

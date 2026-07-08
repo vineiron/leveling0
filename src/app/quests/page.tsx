@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { Board } from "@/components/Board";
 
 export const metadata: Metadata = {
-  title: "Quests - leveling0",
-  description: "Manage your leveling0 quest board.",
+  title: "quests - leveling0",
 };
 
 export default function QuestsPage() {
