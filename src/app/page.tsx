@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BoardPreview } from "@/components/BoardPreview";
 import { BrandMark } from "@/components/BrandMark";
+import { LandingAuthAction } from "@/components/LandingAuthAction";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { btn } from "@/components/ui";
 
@@ -35,6 +36,7 @@ export default function Home() {
           <BrandMark />
           <nav className="flex items-center gap-1.5 sm:gap-2">
             <ThemeToggle />
+            <LandingAuthAction />
           </nav>
         </div>
       </header>

@@ -127,7 +127,7 @@ export function TopBar({
             />
             {mode === "remote" ? "Synced" : "Local only"}
           </span>
-          <UserChip onSignInClick={onSignInClick} />
+          <UserChip compactTablet onSignInClick={onSignInClick} />
         </div>
       </div>
     </header>

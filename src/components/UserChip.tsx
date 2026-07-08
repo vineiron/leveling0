@@ -32,9 +32,15 @@ function avatarColor(seed: string): string {
 
 type Props = {
   onSignInClick: () => void;
+  compactMobile?: boolean;
+  compactTablet?: boolean;
 };
 
-export function UserChip({ onSignInClick }: Props) {
+export function UserChip({
+  onSignInClick,
+  compactMobile = false,
+  compactTablet = false,
+}: Props) {
   const { user, signOut } = useAuth();
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -72,12 +78,43 @@ export function UserChip({ onSignInClick }: Props) {
     };
   }, [open]);
 
+  const compactControlClass = compactTablet
+    ? "h-9 w-9 justify-center p-0 lg:w-auto lg:justify-start lg:gap-2 lg:py-1 lg:pl-1"
+    : compactMobile
+      ? "h-9 w-9 justify-center p-0 sm:w-auto sm:justify-start sm:gap-2 sm:py-1 sm:pl-1"
+      : "";
+  const signedOutPaddingClass = compactTablet
+    ? "lg:pr-3"
+    : compactMobile
+      ? "sm:pr-3"
+      : "";
+  const signedInPaddingClass = compactTablet
+    ? "lg:pr-2.5"
+    : compactMobile
+      ? "sm:pr-2.5"
+      : "";
+  const labelClass = compactTablet
+    ? "hidden lg:inline"
+    : compactMobile
+      ? "hidden sm:inline"
+      : "";
+  const chevronClass = compactTablet
+    ? "hidden lg:block"
+    : compactMobile
+      ? "hidden sm:block"
+      : "";
+
   if (!user) {
     return (
       <button
         type="button"
         onClick={onSignInClick}
-        className="flex items-center gap-2 rounded-full border border-border bg-elevated py-1 pl-1 pr-3 text-sm text-muted transition-colors hover:bg-surface hover:text-fg"
+        className={`flex items-center rounded-full border border-border bg-elevated text-sm text-muted transition-colors hover:bg-surface hover:text-fg ${
+          compactMobile || compactTablet
+            ? `${compactControlClass} ${signedOutPaddingClass}`
+            : "gap-2 py-1 pl-1 pr-3"
+        }`}
+        aria-label="Sign in"
         title="Sign in"
       >
         <span className="flex h-6 w-6 items-center justify-center rounded-full bg-surface-2 text-faint">
@@ -90,7 +127,7 @@ export function UserChip({ onSignInClick }: Props) {
             <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 8a7 7 0 1114 0H3z" />
           </svg>
         </span>
-        <span className="text-xs font-medium">Sign in</span>
+        <span className={`text-xs font-medium ${labelClass}`}>Sign in</span>
       </button>
     );
   }
@@ -141,16 +178,25 @@ export function UserChip({ onSignInClick }: Props) {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-full border border-border bg-elevated py-1 pl-1 pr-2.5 text-sm text-fg transition-colors hover:bg-surface"
+        className={`flex items-center rounded-full border border-border bg-elevated text-sm text-fg transition-colors hover:bg-surface ${
+          compactMobile || compactTablet
+            ? `${compactControlClass} ${signedInPaddingClass}`
+            : "gap-2 py-1 pl-1 pr-2.5"
+        }`}
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-label="Account"
       >
         <Avatar size={24} />
-        <span className="hidden font-mono text-xs text-muted sm:inline">
+        <span
+          className={`font-mono text-xs text-muted ${
+            compactTablet ? "hidden lg:inline" : "hidden sm:inline"
+          }`}
+        >
           {redactEmail(email)}
         </span>
         <svg
-          className="h-3.5 w-3.5 text-faint"
+          className={`h-3.5 w-3.5 text-faint ${chevronClass}`}
           viewBox="0 0 20 20"
           fill="currentColor"
           aria-hidden="true"
