@@ -40,7 +40,8 @@
   },
   "pnpm": {
     "overrides": {
-      "postcss": "8.5.16"
+      "postcss": "8.5.16",
+      "esbuild": "0.28.1"
     }
   }
 }
