@@ -15,6 +15,32 @@ leveling0 is an early personal project. The core board flow works, but APIs,
 database shape, deployment assumptions, and contribution guidelines may change
 as the project matures.
 
+## Screenshots
+
+### Landing
+
+![Landing page in light mode](public/screenshots/landing-light.png)
+
+![Landing page in dark mode](public/screenshots/landing-dark.png)
+
+### Quest board
+
+![Quest board in light mode](public/screenshots/quests-light.png)
+
+![Quest board in dark mode](public/screenshots/quests-dark.png)
+
+### Edit quest with draft restore
+
+![Edit quest modal with draft restore in light mode](public/screenshots/quest-edit-that-has-draft-light.png)
+
+![Edit quest modal with draft restore in dark mode](public/screenshots/quest-edit-that-has-draft-dark.png)
+
+### Command palette
+
+![Command palette over a populated board in light mode](public/screenshots/command-palette-populated-light.png)
+
+![Command palette over a populated board in dark mode](public/screenshots/command-palette-populated-dark.png)
+
 ## Stack
 
 - **Next.js 16** App Router, React 19, React Compiler, TypeScript, Tailwind v4,
