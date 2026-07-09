@@ -98,6 +98,12 @@ Review generated SQL before applying it.
 - `.env` files are not committed.
 - `SUPABASE_SERVICE_ROLE_KEY` is not configured.
 - GitHub secret scanning and Dependabot alerts are enabled.
+- Production dependency audit passes:
+
+```bash
+pnpm audit --prod --audit-level moderate
+```
+
 - TypeScript check passes:
 
 ```bash

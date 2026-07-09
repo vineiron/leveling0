@@ -86,6 +86,8 @@ would increase secret leak risk and is unnecessary for the current architecture.
 - OAuth callback `next` redirects are constrained to same-origin relative paths.
 - Request bodies are validated with Zod and `.strict()`.
 - State-changing quest endpoints reject cross-origin browser requests.
+- Baseline security headers are configured in `next.config.ts`.
+- Server Action request bodies are capped at `256kb` for future action routes.
 - The Postgres client uses `{ prepare: false }` for pooler compatibility.
 - `.env*` files are ignored except `.env.example`.
 - GitHub issue templates direct security reports away from public issues.
@@ -95,6 +97,5 @@ would increase secret leak risk and is unnecessary for the current architecture.
 - Dedicated rate limiting is not implemented yet.
 - Supabase RLS is not configured as defense-in-depth yet.
 - There are no automated API authorization tests yet.
-- There is no server-side security header or CSP configuration beyond Next.js
-  defaults.
+- A stricter Content Security Policy is not enforced yet.
 - Anonymous local quests are not encrypted at rest in browser storage.
