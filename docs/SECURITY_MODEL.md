@@ -83,6 +83,7 @@ would increase secret leak risk and is unnecessary for the current architecture.
 - API route handlers call `supabase.auth.getUser()` before remote data access.
 - Quest reads, updates, deletes, and reorders are scoped by authenticated user
   id.
+- OAuth callback `next` redirects are constrained to same-origin relative paths.
 - Request bodies are validated with Zod and `.strict()`.
 - State-changing quest endpoints reject cross-origin browser requests.
 - The Postgres client uses `{ prepare: false }` for pooler compatibility.
