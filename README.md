@@ -1,36 +1,137 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# leveling0
 
-## Getting Started
+A compact quest board for keeping personal work, errands, and loose ideas from
+turning into a pile.
 
-First, run the development server:
+leveling0 is intentionally simple: three columns, tags, due dates, markdown
+details, private notes, search, command-palette actions, drag-and-drop
+reordering, and optional Google sign-in for syncing across devices. Anonymous
+users can use the board locally in the browser; signed-in users sync quests to
+Postgres.
+
+## Project Status
+
+leveling0 is an early personal project. The core board flow works, but APIs,
+database shape, deployment assumptions, and contribution guidelines may change
+as the project matures.
+
+## Stack
+
+- **Next.js 16** App Router, React 19, React Compiler, TypeScript, Tailwind v4,
+  Biome
+- **Supabase Auth** with Google OAuth via `@supabase/ssr`
+- **Drizzle ORM** and `postgres-js` for Postgres persistence
+- **dnd-kit** for board reordering
+- **Zod** for API request validation
+- **react-markdown** and `remark-gfm` for quest details and notes
+
+## Documentation
+
+- `docs/ARCHITECTURE.md` - app boundaries, route layout, data flow, and key
+  files.
+- `docs/DATABASE.md` - database schema, ownership model, migrations, and
+  validation limits.
+- `docs/DEPLOYMENT.md` - production environment, Supabase OAuth, and migration
+  setup.
+- `docs/SECURITY_MODEL.md` - trust boundaries, data visibility, and known gaps.
+
+## 1. Environment
+
+Copy the example environment file, then replace the placeholders with your own
+Supabase and Postgres values:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
+DATABASE_URL=...
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`NEXT_PUBLIC_*` values are public by design. Do not put secrets in them. This
+app does not require `SUPABASE_SERVICE_ROLE_KEY`; adding one increases leak
+risk and is unnecessary for the current architecture.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 2. Install Dependencies
 
-## Learn More
+```bash
+pnpm install
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 3. Database Migration
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The schema lives in `src/db/schema.ts` and stores one user-owned `quests` table.
+Generate and apply migrations with Drizzle:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+pnpm drizzle-kit generate --name=quests
+pnpm drizzle-kit migrate
+```
 
-## Deploy on Vercel
+Review generated SQL before applying it.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 4. Supabase Google OAuth
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. In **Supabase Dashboard -> Authentication -> Providers -> Google**, enable
+   Google and add your OAuth Client ID and Client Secret.
+2. In **Google Cloud Console -> Credentials -> OAuth client**, add:
+
+```text
+https://<project-ref>.supabase.co/auth/v1/callback
+```
+
+3. In **Supabase Dashboard -> Authentication -> URL Configuration**, set the
+   Site URL and add callback URLs:
+
+```text
+http://localhost:3000/auth/callback
+https://your-domain.com/auth/callback
+```
+
+## 5. Run
+
+```bash
+pnpm dev
+```
+
+Type-check:
+
+```bash
+pnpm exec tsc --noEmit
+```
+
+## Architecture Notes
+
+- Anonymous mode stores quests in browser `localStorage` under
+  `leveling0:items:v1`.
+- Signed-in mode uses Supabase Auth for identity and calls `/api/quests`
+  endpoints for persistence.
+- API route handlers authenticate with `supabase.auth.getUser()`, then scope
+  every read and mutation by `quests.user_id`.
+- Drizzle connects directly to Postgres with `DATABASE_URL`, so Supabase RLS is
+  not the runtime authorization boundary.
+- Middleware refreshes the Supabase session cookie; it is not the only security
+  boundary.
+- State-changing API routes reject cross-origin browser requests with an Origin
+  versus Host check.
+
+## Security Notes
+
+- `.env` files are ignored and must never be committed.
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` is safe to expose to the browser;
+  service-role keys are not.
+- Quests are private to their owner after sign-in.
+- Local anonymous quests stay in the user's browser and are not uploaded until a
+  signed-in remote flow explicitly creates remote quests.
+- See `docs/SECURITY_MODEL.md` for trust boundaries and known gaps.
+- See `SECURITY.md` for responsible vulnerability reporting.
+
+## Known Limitations
+
+- Dedicated rate limiting is not implemented yet.
+- Anonymous local quests are browser/device-local.
+- There is no built-in data export/import flow yet.
+- Supabase RLS is not configured as defense-in-depth because runtime access uses
+  a direct Postgres connection.
