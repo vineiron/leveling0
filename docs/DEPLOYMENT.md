@@ -110,6 +110,71 @@ pnpm audit --prod --audit-level moderate
 pnpm exec tsc --noEmit
 ```
 
+## Setup Troubleshooting
+
+### Google sign-in redirects to an error or loops
+
+Most OAuth failures are URL mismatches. Check all three places:
+
+1. **Google Cloud Console -> Credentials -> OAuth client -> Authorized redirect URIs**
+   must include the Supabase callback, not your app URL:
+
+```text
+https://<project-ref>.supabase.co/auth/v1/callback
+```
+
+2. **Supabase -> Authentication -> URL Configuration -> Site URL** should be the
+   app origin users land on (`http://localhost:3000` locally, your production
+   domain in production).
+
+3. **Supabase -> Authentication -> URL Configuration -> Redirect URLs** must
+   include the app callback paths:
+
+```text
+http://localhost:3000/auth/callback
+https://your-domain.com/auth/callback
+```
+
+Common mistakes:
+
+- Putting `http://localhost:3000/auth/callback` in Google Cloud instead of the
+  Supabase `/auth/v1/callback` URL.
+- Enabling Google in Supabase but forgetting the Client ID / Client Secret.
+- Using a production Site URL while testing on localhost (or the reverse).
+- Missing the local or production entry in Redirect URLs after a domain change.
+
+### Sign-in succeeds, then returns to the app still signed out
+
+- Confirm `NEXT_PUBLIC_SUPABASE_URL` and
+  `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` match the same Supabase project that
+  has Google enabled.
+- Confirm cookies are not blocked for the app origin.
+- Confirm `/auth/callback` is reachable and listed in Supabase Redirect URLs.
+- After a successful exchange, the app only accepts same-origin relative
+  `next` paths. A crafted external `next` value is ignored and falls back to
+  `/`.
+
+### Signed-in board stays empty or API calls return 401
+
+- You are signed in to Supabase, but quest APIs still require a valid session
+  cookie on `/api/quests*`.
+- Confirm `DATABASE_URL` points at the database for that same project.
+- Confirm migrations have been applied (`pnpm drizzle-kit migrate`).
+- A wrong or empty `DATABASE_URL` fails server-side; it will not fall back to
+  localStorage for signed-in mode.
+
+### Local anonymous mode works, signed-in sync does not
+
+That is expected until auth and database are configured. Anonymous quests live
+in browser `localStorage` under `leveling0:items:v1` and are not uploaded
+automatically when you later sign in.
+
+### `pnpm drizzle-kit` fails against the pooler URL
+
+Use a direct or session-pooler connection for generate/migrate when possible.
+Keep the transaction pooler URL for the deployed Next.js runtime, which uses
+`{ prepare: false }`.
+
 ## Security Notes
 
 See `docs/SECURITY_MODEL.md` for trust boundaries and authorization details.

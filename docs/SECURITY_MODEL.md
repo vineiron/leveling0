@@ -35,8 +35,8 @@ Owner-scoped reads and writes must include the authenticated user id, usually as
 
 ### Middleware
 
-`src/middleware.ts` refreshes Supabase session cookies. It is not the security
-boundary for quest data.
+`src/middleware.ts` refreshes Supabase session cookies. It is not the
+authorization boundary for quest data.
 
 ### Database
 
@@ -86,16 +86,18 @@ would increase secret leak risk and is unnecessary for the current architecture.
 - OAuth callback `next` redirects are constrained to same-origin relative paths.
 - Request bodies are validated with Zod and `.strict()`.
 - State-changing quest endpoints reject cross-origin browser requests.
-- Baseline security headers are configured in `next.config.ts`.
+- Baseline security headers and a practical Content Security Policy are
+  configured in `next.config.ts` (inline scripts/styles allowed for the theme
+  script and Next runtime; Supabase origins and Google avatar hosts allowlisted).
 - Server Action request bodies are capped at `256kb` for future action routes.
 - The Postgres client uses `{ prepare: false }` for pooler compatibility.
 - `.env*` files are ignored except `.env.example`.
 - GitHub issue templates direct security reports away from public issues.
+- API authorization, CSRF origin checks, and validation have Vitest coverage
+  under `src/**/*.test.ts`.
 
 ## Known Gaps
 
 - Dedicated rate limiting is not implemented yet.
 - Supabase RLS is not configured as defense-in-depth yet.
-- There are no automated API authorization tests yet.
-- A stricter Content Security Policy is not enforced yet.
 - Anonymous local quests are not encrypted at rest in browser storage.
