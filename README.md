@@ -122,10 +122,11 @@ https://your-domain.com/auth/callback
 pnpm dev
 ```
 
-Type-check:
+Type-check and tests:
 
 ```bash
 pnpm exec tsc --noEmit
+pnpm exec vitest run
 ```
 
 ## Architecture Notes
