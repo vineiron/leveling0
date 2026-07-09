@@ -10,6 +10,13 @@ updates:
         dependency-type: "production"
       development-dependencies:
         dependency-type: "development"
+    ignore:
+      # Next.js still requires the TypeScript Compiler API; TS 7 removed it.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      # Keep @types/node aligned with the Node 20 runtime.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
