@@ -56,36 +56,8 @@ export function Board() {
   const [adding, setAdding] = useState<QuestStatus | null>(null);
   const [signInOpen, setSignInOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [tagFilterOpen, setTagFilterOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState<QuestStatus>("backlog");
-
-  // Global shortcuts: ⌘/Ctrl-K and "/" both open the command palette, which
-  // is now the single place to search quests and run actions.
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        setPaletteOpen((v) => !v);
-        return;
-      }
-      if (
-        e.key === "/" &&
-        !e.metaKey &&
-        !e.ctrlKey &&
-        !paletteOpen &&
-        editing === null &&
-        adding === null
-      ) {
-        const t = e.target as HTMLElement | null;
-        const tag = t?.tagName;
-        if (tag === "INPUT" || tag === "TEXTAREA" || t?.isContentEditable)
-          return;
-        e.preventDefault();
-        setPaletteOpen(true);
-      }
-    }
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [paletteOpen, editing, adding]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -96,6 +68,38 @@ export function Board() {
     for (const it of quests) for (const t of it.tags) set.add(t);
     return [...set].sort();
   }, [quests]);
+
+  // Global shortcuts: ⌘/Ctrl-K and "/" both open the command palette, which
+  // is now the single place to search quests and run actions. "f" toggles the
+  // tag filter. Bare-key shortcuts are suppressed while typing or while the
+  // palette / a modal owns the screen.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+        return;
+      }
+      const bare = !e.metaKey && !e.ctrlKey && !e.altKey;
+      if (
+        bare &&
+        (e.key === "/" || e.key.toLowerCase() === "f") &&
+        !paletteOpen &&
+        editing === null &&
+        adding === null
+      ) {
+        const t = e.target as HTMLElement | null;
+        const tag = t?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || t?.isContentEditable)
+          return;
+        e.preventDefault();
+        if (e.key === "/") setPaletteOpen(true);
+        else if (allTags.length > 0) setTagFilterOpen((v) => !v);
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [paletteOpen, editing, adding, allTags]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -228,6 +232,8 @@ export function Board() {
         allTags={allTags}
         activeTags={activeTags}
         onActiveTagsChange={setActiveTags}
+        tagFilterOpen={tagFilterOpen}
+        onTagFilterOpenChange={setTagFilterOpen}
         onNewQuest={() => openCreate(mobileTab)}
         onOpenPalette={() => setPaletteOpen(true)}
         onSignInClick={() => setSignInOpen(true)}
@@ -301,6 +307,8 @@ export function Board() {
                 allTags={allTags}
                 activeTags={activeTags}
                 onChange={setActiveTags}
+                open={tagFilterOpen}
+                onOpenChange={setTagFilterOpen}
               />
             </div>
           </div>
