@@ -11,6 +11,8 @@ type Props = {
   allTags: string[];
   activeTags: string[];
   onActiveTagsChange: (next: string[]) => void;
+  tagFilterOpen: boolean;
+  onTagFilterOpenChange: (open: boolean) => void;
   onNewQuest: () => void;
   onOpenPalette: () => void;
   onSignInClick: () => void;
@@ -51,6 +53,8 @@ export function TopBar({
   allTags,
   activeTags,
   onActiveTagsChange,
+  tagFilterOpen,
+  onTagFilterOpenChange,
   onNewQuest,
   onOpenPalette,
   onSignInClick,
@@ -93,6 +97,8 @@ export function TopBar({
             allTags={allTags}
             activeTags={activeTags}
             onChange={onActiveTagsChange}
+            open={tagFilterOpen}
+            onOpenChange={onTagFilterOpenChange}
           />
 
           <button
