@@ -104,6 +104,8 @@ export function TopBar({
           <button
             type="button"
             onClick={onNewQuest}
+            aria-keyshortcuts="n"
+            title="New quest (N)"
             className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-accent px-2.5 text-sm font-medium text-accent-fg shadow-sm transition-all duration-150 ease-[cubic-bezier(.2,.9,.25,1)] hover:bg-accent-hover hover:shadow-[0_2px_14px_var(--accent-glow)] active:scale-[.97] lg:px-3"
           >
             <PlusIcon />
