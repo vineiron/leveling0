@@ -141,6 +141,15 @@ export function TagFilter({
             ? `${activeTags.length} tag${activeTags.length > 1 ? "s" : ""}`
             : "Filter"}
         </span>
+        <kbd
+          className={`hidden rounded-md border px-1.5 py-0.5 font-mono text-[10px] font-medium lg:block ${
+            activeTags.length > 0
+              ? "border-accent-border text-accent-text/75"
+              : "border-border bg-elevated text-faint"
+          }`}
+        >
+          F
+        </kbd>
       </button>
       {open && !disabled && (
         <div className="absolute right-0 top-full z-40 mt-1.5 w-72 origin-top-right animate-pop-in overflow-hidden rounded-xl border border-border bg-elevated shadow-lg">
