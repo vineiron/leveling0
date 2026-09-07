@@ -120,6 +120,15 @@ export function QuestModal({
 
   // Skip first debounced save when we just opened/restored — it would just rewrite identical data.
   const skipNextSaveRef = useRef(false);
+  const titleRef = useRef<HTMLInputElement | null>(null);
+
+  // New quest: land the cursor in Title so typing can start immediately.
+  // Deferred a tick so the portal has mounted and the panel is in the DOM.
+  useEffect(() => {
+    if (!open || initial) return;
+    const t = setTimeout(() => titleRef.current?.focus(), 0);
+    return () => clearTimeout(t);
+  }, [open, initial]);
 
   useEffect(() => {
     if (!open) return;
@@ -384,6 +393,7 @@ export function QuestModal({
                   Title <span className="text-danger-text">*</span>
                 </span>
                 <input
+                  ref={titleRef}
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   required
@@ -478,8 +488,8 @@ export function QuestModal({
                 <>
                   <p className="mb-1 font-medium">Please fix the following:</p>
                   <ul className="list-disc space-y-0.5 pl-5">
-                    {errors.map((m, i) => (
-                      <li key={`${i}-${m}`}>{m}</li>
+                    {errors.map((m) => (
+                      <li key={m}>{m}</li>
                     ))}
                   </ul>
                 </>

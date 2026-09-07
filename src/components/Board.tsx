@@ -71,8 +71,9 @@ export function Board() {
 
   // Global shortcuts: ⌘/Ctrl-K and "/" both open the command palette, which
   // is now the single place to search quests and run actions. "f" toggles the
-  // tag filter. Bare-key shortcuts are suppressed while typing or while the
-  // palette / a modal owns the screen.
+  // tag filter, "n" opens a new quest in the active column. Bare-key
+  // shortcuts are suppressed while typing or while the palette / a modal
+  // owns the screen.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -80,26 +81,24 @@ export function Board() {
         setPaletteOpen((v) => !v);
         return;
       }
-      const bare = !e.metaKey && !e.ctrlKey && !e.altKey;
-      if (
-        bare &&
-        (e.key === "/" || e.key.toLowerCase() === "f") &&
-        !paletteOpen &&
-        editing === null &&
-        adding === null
-      ) {
-        const t = e.target as HTMLElement | null;
-        const tag = t?.tagName;
-        if (tag === "INPUT" || tag === "TEXTAREA" || t?.isContentEditable)
-          return;
-        e.preventDefault();
-        if (e.key === "/") setPaletteOpen(true);
-        else if (allTags.length > 0) setTagFilterOpen((v) => !v);
-      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (paletteOpen || signInOpen || editing !== null || adding !== null)
+        return;
+      const key = e.key === "/" ? "/" : e.key.toLowerCase();
+      if (key !== "/" && key !== "f" && key !== "n") return;
+      const t = e.target as HTMLElement | null;
+      const tag = t?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || t?.isContentEditable) return;
+      e.preventDefault();
+      if (key === "/") setPaletteOpen(true);
+      else if (key === "n") {
+        setEditing(null);
+        setAdding(mobileTab);
+      } else if (allTags.length > 0) setTagFilterOpen((v) => !v);
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [paletteOpen, editing, adding, allTags]);
+  }, [paletteOpen, signInOpen, editing, adding, allTags, mobileTab]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();

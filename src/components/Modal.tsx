@@ -97,6 +97,11 @@ export function Modal({
     setIsNested(modalStack.length > 0);
     modalStack.push(id);
     lockScroll();
+    // Remember what opened us so focus lands back there on close.
+    const opener =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
@@ -110,6 +115,7 @@ export function Modal({
       const i = modalStack.lastIndexOf(id);
       if (i !== -1) modalStack.splice(i, 1);
       unlockScroll();
+      if (opener?.isConnected) opener.focus();
     };
   }, [open, id]);
 
