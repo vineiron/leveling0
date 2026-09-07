@@ -33,6 +33,7 @@ function avatarColor(seed: string): string {
 type Props = {
   onSignInClick: () => void;
   compactMobile?: boolean;
+  /** Avatar-only until xl — the top bar's centre group needs the room at lg. */
   compactTablet?: boolean;
 };
 
@@ -79,27 +80,27 @@ export function UserChip({
   }, [open]);
 
   const compactControlClass = compactTablet
-    ? "h-9 w-9 justify-center p-0 lg:w-auto lg:justify-start lg:gap-2 lg:py-1 lg:pl-1"
+    ? "h-9 w-9 justify-center p-0 xl:w-auto xl:justify-start xl:gap-2 xl:py-1 xl:pl-1"
     : compactMobile
       ? "h-9 w-9 justify-center p-0 sm:w-auto sm:justify-start sm:gap-2 sm:py-1 sm:pl-1"
       : "";
   const signedOutPaddingClass = compactTablet
-    ? "lg:pr-3"
+    ? "xl:pr-3"
     : compactMobile
       ? "sm:pr-3"
       : "";
   const signedInPaddingClass = compactTablet
-    ? "lg:pr-2.5"
+    ? "xl:pr-2.5"
     : compactMobile
       ? "sm:pr-2.5"
       : "";
   const labelClass = compactTablet
-    ? "hidden lg:inline"
+    ? "hidden xl:inline"
     : compactMobile
       ? "hidden sm:inline"
       : "";
   const chevronClass = compactTablet
-    ? "hidden lg:block"
+    ? "hidden xl:block"
     : compactMobile
       ? "hidden sm:block"
       : "";

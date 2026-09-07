@@ -136,7 +136,7 @@ export function TagFilter({
         >
           <path d="M3 4.75A.75.75 0 013.75 4h12.5a.75.75 0 01.6 1.2L12 11.31V16a.75.75 0 01-1.17.62l-2.5-1.67A.75.75 0 018 14.33V11.3L3.15 5.2A.75.75 0 013 4.75z" />
         </svg>
-        <span className="hidden sm:inline">
+        <span className="hidden lg:inline">
           {activeTags.length > 0
             ? `${activeTags.length} tag${activeTags.length > 1 ? "s" : ""}`
             : "Filter"}

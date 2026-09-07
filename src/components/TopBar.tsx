@@ -81,7 +81,7 @@ export function TopBar({
           <button
             type="button"
             onClick={onOpenPalette}
-            className="group flex h-9 w-[14rem] items-center gap-2 rounded-lg border border-white/55 bg-elevated/55 px-3 text-sm text-muted shadow-xs backdrop-blur-md transition-colors hover:border-border-strong hover:bg-elevated/80 dark:border-white/10 dark:bg-surface/55 dark:hover:bg-surface-2/70 lg:w-[21rem] xl:w-[27rem]"
+            className="group flex h-9 w-[14rem] items-center gap-2 rounded-lg border border-white/55 bg-elevated/55 px-3 text-sm text-muted shadow-xs backdrop-blur-md transition-colors hover:border-border-strong hover:bg-elevated/80 dark:border-white/10 dark:bg-surface/55 dark:hover:bg-surface-2/70 lg:w-[16rem] xl:w-[21rem] 2xl:w-[27rem]"
             aria-label="Search quests or run a command"
           >
             <SearchIcon className="h-4 w-4 text-faint transition-colors group-hover:text-muted" />
