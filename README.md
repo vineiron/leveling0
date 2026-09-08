@@ -9,6 +9,9 @@ reordering, and optional Google sign-in for syncing across devices. Anonymous
 users can use the board locally in the browser; signed-in users sync quests to
 Postgres.
 
+Try it at [leveling0.vercel.app](https://leveling0.vercel.app). No sign-in is
+needed; the board runs in your browser until you choose to sync.
+
 ## Project Status
 
 leveling0 is an early personal project. The core board flow works, but APIs,
