@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "@/lib/auth/AuthProvider";
+import {
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_TAGLINE,
+  SITE_URL,
+} from "@/lib/site";
 import { ThemeProvider } from "@/lib/theme/ThemeProvider";
 import "./globals.css";
 
@@ -18,7 +24,21 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "leveling0 - less messy leveling",
+  metadataBase: new URL(SITE_URL),
+  title: `${SITE_NAME} - ${SITE_TAGLINE}`,
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    type: "website",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} - ${SITE_TAGLINE}`,
+    description: SITE_DESCRIPTION,
+  },
+  // The image itself comes from src/app/opengraph-image.tsx; Next wires the
+  // og:image and twitter:image tags from that file.
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default function RootLayout({
