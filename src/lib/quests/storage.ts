@@ -1,5 +1,6 @@
 import { ApiError, toFriendlyMessages } from "./errors";
-import type { Quest, QuestDraft, QuestStatus } from "./types";
+import { applyReorder } from "./reorder";
+import type { Quest, QuestDraft, ReorderPayload } from "./types";
 
 const LS_KEY = "leveling0:items:v1";
 
@@ -36,7 +37,7 @@ export type QuestStore = {
     patch: Partial<QuestDraft> & { position?: number },
   ): Promise<Quest>;
   remove(id: string): Promise<void>;
-  reorder(groups: Array<{ status: QuestStatus; ids: string[] }>): Promise<void>;
+  reorder(groups: ReorderPayload[]): Promise<void>;
 };
 
 export const localStore: QuestStore = {
@@ -86,24 +87,7 @@ export const localStore: QuestStore = {
     writeLocal(quests);
   },
   async reorder(groups) {
-    const quests = readLocal();
-    const map = new Map(quests.map((i) => [i.id, i]));
-    const now = new Date().toISOString();
-    for (const group of groups) {
-      group.ids.forEach((id, position) => {
-        const it = map.get(id);
-        if (!it) return;
-        if (it.status !== group.status || it.position !== position) {
-          map.set(id, {
-            ...it,
-            status: group.status,
-            position,
-            updatedAt: now,
-          });
-        }
-      });
-    }
-    writeLocal([...map.values()]);
+    writeLocal(applyReorder(readLocal(), groups, new Date().toISOString()));
   },
 };
 

@@ -2,10 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { applyReorder } from "./reorder";
 import { apiStore, localStore, type QuestStore } from "./storage";
-import type { Quest, QuestDraft, QuestStatus } from "./types";
-
-type ReorderGroups = Array<{ status: QuestStatus; ids: string[] }>;
+import type { Quest, QuestDraft, ReorderPayload } from "./types";
 
 export type UseQuests = {
   quests: Quest[];
@@ -15,8 +14,8 @@ export type UseQuests = {
   create: (draft: QuestDraft) => Promise<void>;
   update: (id: string, patch: Partial<QuestDraft>) => Promise<void>;
   remove: (id: string) => Promise<void>;
-  previewReorder: (groups: ReorderGroups) => void;
-  commitReorder: (groups: ReorderGroups) => Promise<void>;
+  previewReorder: (groups: ReorderPayload[]) => void;
+  commitReorder: (groups: ReorderPayload[]) => Promise<void>;
   mode: "local" | "remote";
 };
 
@@ -76,23 +75,13 @@ export function useQuests(): UseQuests {
 
   // Local-only optimistic apply. Used during drag-over to drive visual feedback
   // without paying for a network round-trip on every hover tick.
-  const previewReorder = useCallback((groups: ReorderGroups) => {
-    setItems((prev) => {
-      const map = new Map(prev.map((i) => [i.id, i]));
-      for (const g of groups) {
-        g.ids.forEach((id, position) => {
-          const it = map.get(id);
-          if (!it) return;
-          map.set(id, { ...it, status: g.status, position });
-        });
-      }
-      return [...map.values()];
-    });
+  const previewReorder = useCallback((groups: ReorderPayload[]) => {
+    setItems((prev) => applyReorder(prev, groups));
   }, []);
 
   // Persist the latest reorder state. On failure we refetch to resync the UI.
   const commitReorder = useCallback(
-    async (groups: ReorderGroups) => {
+    async (groups: ReorderPayload[]) => {
       try {
         await store.reorder(groups);
       } catch (e) {
