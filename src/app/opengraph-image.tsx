@@ -91,7 +91,7 @@ export default async function Image() {
           color: "#6c6a64",
         }}
       >
-        Three columns, tags, due dates, markdown. Works without an account.
+        Three columns, tags, due dates, markdown. No account needed.
       </div>
 
       <div
