@@ -53,6 +53,18 @@ app's own queries.
 
 ## Data Visibility
 
+### Analytics And Error Reports
+
+When `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` is set, the app sends page views and
+unhandled errors to PostHog. What leaves the browser: the page path, referrer,
+browser and device class, a random per-browser id kept in `localStorage`, and
+for errors the message and stack. What never leaves: quest content, the
+signed-in user's email or Supabase id, and clicks or keystrokes (autocapture
+and session replay are off, and `identify` is never called). Requests go
+through this app's own origin under `/ingest`, so the CSP stays `'self'`-only.
+Server-side errors are reported from `src/instrumentation.ts` with the route
+and method, under one synthetic id with no person profile.
+
 ### Anonymous Quests
 
 Anonymous quests are stored in browser `localStorage` under

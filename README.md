@@ -157,6 +157,9 @@ pnpm exec vitest run
 - Quests are private to their owner after sign-in.
 - Local anonymous quests stay in the user's browser and are not uploaded until a
   signed-in remote flow explicitly creates remote quests.
+- Analytics and error tracking (PostHog) are optional, proxied through the
+  app's own origin, and never see quest content or user identity. Details in
+  `docs/SECURITY_MODEL.md`.
 - See `docs/SECURITY_MODEL.md` for trust boundaries and known gaps.
 - See `SECURITY.md` for responsible vulnerability reporting.
 
