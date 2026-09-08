@@ -32,7 +32,10 @@ export const quests = pgTable(
   (t) => [
     index("quests_user_status_position_idx").on(t.userId, t.status, t.position),
   ],
-);
+  // Closes the table to Supabase's REST API (PostgREST). The app connects as
+  // the table owner through DATABASE_URL, which bypasses RLS, so owner checks
+  // in the route handlers remain the runtime authorization boundary.
+).enableRLS();
 
 export type DbQuest = typeof quests.$inferSelect;
 export type DbQuestInsert = typeof quests.$inferInsert;

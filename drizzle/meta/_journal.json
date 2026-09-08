@@ -15,6 +15,13 @@
       "when": 1779030873737,
       "tag": "0001_rename_items_to_quests",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788842772243,
+      "tag": "0002_quests_rls",
+      "breakpoints": true
     }
   ]
 }

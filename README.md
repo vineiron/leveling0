@@ -140,8 +140,10 @@ pnpm exec vitest run
   endpoints for persistence.
 - API route handlers authenticate with `supabase.auth.getUser()`, then scope
   every read and mutation by `quests.user_id`.
-- Drizzle connects directly to Postgres with `DATABASE_URL`, so Supabase RLS is
-  not the runtime authorization boundary.
+- Drizzle connects directly to Postgres with `DATABASE_URL` as the table owner,
+  so Supabase RLS is not the runtime authorization boundary. RLS is still
+  enabled on `quests` with no policies, and REST grants are revoked, to keep
+  the table out of Supabase's auto-generated REST API.
 - Middleware refreshes the Supabase session cookie; it is not the only security
   boundary.
 - State-changing API routes reject cross-origin browser requests with an Origin
@@ -163,5 +165,3 @@ pnpm exec vitest run
 - Dedicated rate limiting is not implemented yet.
 - Anonymous local quests are browser/device-local.
 - There is no built-in data export/import flow yet.
-- Supabase RLS is not configured as defense-in-depth because runtime access uses
-  a direct Postgres connection.

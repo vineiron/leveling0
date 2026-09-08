@@ -39,6 +39,10 @@ const tagsSchema = z
   .array(z.string().trim().min(1).max(TAG_MAX))
   .max(TAGS_MAX_COUNT);
 
+// Route param for /api/quests/[id]. A non-UUID would otherwise reach Postgres
+// and fail the uuid cast with a 500 instead of a 404.
+export const questIdSchema = z.string().uuid();
+
 export const createQuestSchema = z
   .object({
     title: z.string().trim().min(1).max(TITLE_MAX),

@@ -21,3 +21,19 @@ export function checkOrigin(request: Request): NextResponse | null {
   }
   return null;
 }
+
+// Constrains a post-auth redirect target to a same-origin path. Resolving
+// against the origin (instead of prefix-checking the string) catches every
+// parser quirk that turns a "relative" value into another host, e.g. "//evil"
+// and "/\\evil" (backslash is a slash for http(s) URLs).
+export function safeRedirectPath(value: string | null, origin: string): string {
+  if (!value?.startsWith("/")) return "/";
+  let target: URL;
+  try {
+    target = new URL(value, origin);
+  } catch {
+    return "/";
+  }
+  if (target.origin !== origin) return "/";
+  return target.pathname + target.search + target.hash;
+}

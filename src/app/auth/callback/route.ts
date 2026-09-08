@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
+import { safeRedirectPath } from "@/lib/security";
 import { getSupabaseServer } from "@/lib/supabase/server";
-
-function safeRedirectPath(value: string | null): string {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/";
-  return value;
-}
 
 function redirectWithAuthError(requestUrl: URL, path: string, message: string) {
   const target = new URL(path, requestUrl.origin);
@@ -15,7 +11,7 @@ function redirectWithAuthError(requestUrl: URL, path: string, message: string) {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  const next = safeRedirectPath(url.searchParams.get("next"));
+  const next = safeRedirectPath(url.searchParams.get("next"), url.origin);
 
   if (!code) {
     return redirectWithAuthError(url, next, "missing_code");

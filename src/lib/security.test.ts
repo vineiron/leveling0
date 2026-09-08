@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkOrigin } from "./security";
+import { checkOrigin, safeRedirectPath } from "./security";
 
 function requestWith(headers: Record<string, string>) {
   return new Request("http://localhost:3000/api/quests", {
@@ -56,5 +56,27 @@ describe("checkOrigin", () => {
     );
 
     expect(response?.status).toBe(403);
+  });
+});
+
+describe("safeRedirectPath", () => {
+  const origin = "https://leveling0.vercel.app";
+
+  it("keeps same-origin paths with query and hash", () => {
+    expect(safeRedirectPath("/quests?x=1#top", origin)).toBe("/quests?x=1#top");
+  });
+
+  it("falls back to / for empty or non-path values", () => {
+    expect(safeRedirectPath(null, origin)).toBe("/");
+    expect(safeRedirectPath("", origin)).toBe("/");
+    expect(safeRedirectPath("quests", origin)).toBe("/");
+    expect(safeRedirectPath("https://evil.example/", origin)).toBe("/");
+  });
+
+  it("rejects protocol-relative and backslash hosts", () => {
+    expect(safeRedirectPath("//evil.example", origin)).toBe("/");
+    expect(safeRedirectPath("/\\evil.example", origin)).toBe("/");
+    expect(safeRedirectPath("/\\evil.example/quests", origin)).toBe("/");
+    expect(safeRedirectPath("/\\/evil.example", origin)).toBe("/");
   });
 });

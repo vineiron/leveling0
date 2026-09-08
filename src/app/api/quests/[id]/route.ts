@@ -5,7 +5,7 @@ import { quests } from "@/db/schema";
 import { dbQuestToQuest } from "@/lib/quests/serialize";
 import { checkOrigin } from "@/lib/security";
 import { getCurrentUserId } from "@/lib/supabase/server";
-import { updateQuestSchema } from "@/lib/validation";
+import { questIdSchema, updateQuestSchema } from "@/lib/validation";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -17,7 +17,10 @@ export async function PATCH(request: Request, ctx: RouteContext) {
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const { id } = await ctx.params;
+  const id = questIdSchema.safeParse((await ctx.params).id);
+  if (!id.success) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
 
   const raw = await request.json().catch(() => null);
   const parsed = updateQuestSchema.safeParse(raw);
@@ -41,7 +44,7 @@ export async function PATCH(request: Request, ctx: RouteContext) {
   const [updated] = await db
     .update(quests)
     .set(patch)
-    .where(and(eq(quests.id, id), eq(quests.userId, userId)))
+    .where(and(eq(quests.id, id.data), eq(quests.userId, userId)))
     .returning();
 
   if (!updated) {
@@ -58,10 +61,13 @@ export async function DELETE(request: Request, ctx: RouteContext) {
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const { id } = await ctx.params;
+  const id = questIdSchema.safeParse((await ctx.params).id);
+  if (!id.success) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
   const deleted = await db
     .delete(quests)
-    .where(and(eq(quests.id, id), eq(quests.userId, userId)))
+    .where(and(eq(quests.id, id.data), eq(quests.userId, userId)))
     .returning({ id: quests.id });
   if (deleted.length === 0) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
