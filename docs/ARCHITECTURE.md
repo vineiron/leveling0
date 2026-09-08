@@ -98,7 +98,8 @@ Important files:
 - `src/app/` - routes, metadata, API handlers, and global styles.
 - `src/components/` - board UI, modals, command palette, and shared primitives.
 - `src/lib/auth/` - client auth provider and sign-in/sign-out helpers.
-- `src/lib/quests/` - quest types, storage adapters, serialization, and hooks.
+- `src/lib/quests/` - quest types, storage adapters, reorder logic,
+  serialization, and hooks.
 - `src/lib/supabase/` - browser and server Supabase clients.
 - `src/db/schema.ts` - Drizzle schema for persisted quest data.
 - `src/db/client.ts` - Postgres client and Drizzle instance.
