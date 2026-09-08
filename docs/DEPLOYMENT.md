@@ -17,6 +17,8 @@ Set every variable from `.env.example` in your deployment platform.
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
 DATABASE_URL=postgresql://...
+NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN=phc_...
+NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
 ```
 
 ### `NEXT_PUBLIC_SUPABASE_URL`
@@ -39,6 +41,14 @@ is compatible with transaction pooling.
 
 For Drizzle generation and migrations, use a direct or session-pooler
 connection when possible.
+
+### `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` and `NEXT_PUBLIC_POSTHOG_HOST`
+
+Optional. Enables PostHog analytics and error tracking. The token is a public
+project key, safe in the browser. The host is the region ingest URL, either
+`https://us.i.posthog.com` or `https://eu.i.posthog.com`; `next.config.ts`
+derives the assets host and the reverse-proxy rewrites from it. Leave both
+empty to disable everything. See `docs/SECURITY_MODEL.md` for what is sent.
 
 ## Supabase Auth Setup
 
