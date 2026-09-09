@@ -4,7 +4,9 @@
 
 Please do not open public issues for suspected vulnerabilities.
 
-Report security issues privately to the project maintainer. Include:
+Report security issues privately through GitHub's private vulnerability
+reporting: <https://github.com/vineiron/leveling0/security/advisories/new>.
+Include:
 
 - A short description of the issue and impact
 - Reproduction steps or proof of concept

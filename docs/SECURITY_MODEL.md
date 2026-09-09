@@ -33,9 +33,9 @@ requests whose `Origin` host does not match the request `Host`.
 Owner-scoped reads and writes must include the authenticated user id, usually as
 `where user_id = userId`.
 
-### Middleware
+### Proxy (Next 16's middleware)
 
-`src/middleware.ts` refreshes Supabase session cookies. It is not the
+`src/proxy.ts` refreshes Supabase session cookies. It is not the
 authorization boundary for quest data.
 
 ### Database
@@ -50,6 +50,10 @@ RLS is still enabled on `quests`, with no policies, and the `anon` and
 API, which would otherwise expose every row to anyone holding the publishable
 key. It is a second door being locked, not the authorization boundary for the
 app's own queries.
+
+Supabase grants `anon` and `authenticated` access to new tables in `public` by
+default, so every new table must repeat this: call `.enableRLS()` in
+`src/db/schema.ts` and revoke the REST grants in its migration.
 
 ## Data Visibility
 
@@ -115,4 +119,5 @@ would increase secret leak risk and is unnecessary for the current architecture.
 ## Known Gaps
 
 - Dedicated rate limiting is not implemented yet.
+- There is no cap on quests per signed-in user yet.
 - Anonymous local quests are not encrypted at rest in browser storage.

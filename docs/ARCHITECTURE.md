@@ -32,7 +32,7 @@ API route handlers under `src/app/api/quests/` authenticate the Supabase user,
 validate request bodies, check request origins for mutations, and scope every
 database operation by the authenticated user id.
 
-`src/middleware.ts` refreshes the Supabase session cookie. It is helpful for
+`src/proxy.ts` refreshes the Supabase session cookie. It is helpful for
 session continuity, but API routes still perform their own authentication.
 
 ### Database
@@ -103,4 +103,4 @@ Important files:
 - `src/lib/supabase/` - browser and server Supabase clients.
 - `src/db/schema.ts` - Drizzle schema for persisted quest data.
 - `src/db/client.ts` - Postgres client and Drizzle instance.
-- `src/middleware.ts` - Supabase session refresh.
+- `src/proxy.ts` - Supabase session refresh.
