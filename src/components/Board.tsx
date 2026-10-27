@@ -323,7 +323,7 @@ export function Board() {
                 role="tab"
                 aria-selected={active}
                 onClick={() => setMobileTab(status)}
-                className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-1.5 py-1.5 text-xs font-medium transition-colors ${
+                className={`relative flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg px-1.5 py-1.5 text-xs font-medium transition-colors ${
                   active
                     ? "bg-elevated text-fg shadow-sm"
                     : "text-muted hover:text-fg"
@@ -331,7 +331,7 @@ export function Board() {
               >
                 <StatusIcon status={status} className="h-3 w-3" />
                 <span className="truncate">{STATUS_LABELS[status]}</span>
-                <span className="shrink-0 rounded-full bg-surface-2 px-1.5 py-0.5 text-[10px] text-muted">
+                <span className="absolute -top-2.5 -right-1 rounded-full bg-surface-2 px-1.5 py-0.5 text-[10px] text-muted ring-2 ring-canvas">
                   {grouped[status].length}
                 </span>
               </button>
