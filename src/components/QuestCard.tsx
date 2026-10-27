@@ -64,7 +64,7 @@ export function QuestCard({ quest, onEdit }: Props) {
           className="flex min-w-0 flex-1 flex-col gap-2 text-left"
         >
           <div className="flex items-start gap-2">
-            <span className="line-clamp-2 min-w-0 flex-1 text-[13px] font-medium leading-snug text-fg">
+            <span className="line-clamp-2 min-w-0 flex-1 text-[13px] font-medium leading-snug text-fg wrap-anywhere">
               {quest.title}
             </span>
           </div>
