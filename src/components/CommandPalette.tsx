@@ -237,7 +237,7 @@ export function CommandPalette({
   let lastGroup = "";
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-start justify-center p-4 pt-[12vh]">
+    <div className="fixed inset-0 z-[60] flex items-start justify-center p-4 pt-[12dvh]">
       <button
         type="button"
         aria-label="Close command palette"
@@ -282,7 +282,7 @@ export function CommandPalette({
 
         <div
           ref={listRef}
-          className="max-h-[min(60vh,420px)] overflow-y-auto p-1.5"
+          className="max-h-[min(60dvh,420px)] overflow-y-auto p-1.5"
         >
           {results.length === 0 ? (
             <div className="px-3 py-10 text-center text-sm text-muted">
