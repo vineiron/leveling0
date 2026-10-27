@@ -217,7 +217,7 @@ export function DueDateField({ value, status, onChange }: Props) {
       </div>
 
       {open && (
-        <div className="absolute left-0 right-0 top-full z-30 mt-1.5 w-[20rem] max-w-[calc(100vw-2rem)] origin-top animate-pop-in overflow-hidden rounded-xl border border-border bg-elevated p-3 shadow-lg">
+        <div className="absolute left-0 right-0 top-full z-30 mt-1.5 origin-top animate-pop-in overflow-hidden rounded-xl border border-border bg-elevated p-3 shadow-lg sm:left-auto sm:w-[20rem]">
           <div className="mb-2 flex items-center justify-between">
             <button
               type="button"
@@ -400,7 +400,7 @@ export function DueDateField({ value, status, onChange }: Props) {
             </div>
           )}
 
-          <div className="mt-3 flex items-center gap-2">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <span className="text-[10px] font-medium uppercase tracking-wide text-faint">
               Time
             </span>
