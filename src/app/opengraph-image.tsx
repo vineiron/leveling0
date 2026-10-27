@@ -1,24 +1,30 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { ImageResponse } from "next/og";
-import { SITE_TAGLINE, SITE_URL } from "@/lib/site";
+import { SITE_TAGLINE } from "@/lib/site";
 
 export const alt = `leveling0 - ${SITE_TAGLINE}`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
+function readPublic(relativePath: string) {
+  return readFile(join(process.cwd(), "public", relativePath));
+}
+
 async function dataUri(relativePath: string) {
-  const file = await readFile(join(process.cwd(), "public", relativePath));
+  const file = await readPublic(relativePath);
   return `data:image/png;base64,${file.toString("base64")}`;
 }
 
 // Static at build time: no request-time APIs are used, so Next renders this
-// once and serves the PNG. Uses the bundled Inter font; Geist is not shipped
-// as a file next/og can read.
+// once and serves the PNG. next/og bundles only Geist Regular and passing
+// `fonts` replaces it, so both weights are loaded here.
 export default async function Image() {
-  const [mark, board] = await Promise.all([
+  const [mark, board, regular, semibold] = await Promise.all([
     dataUri("brand/leveling0-mark-256.png"),
     dataUri("og/board-light.png"),
+    readPublic("og/Geist-Regular.ttf"),
+    readPublic("og/Geist-SemiBold.ttf"),
   ]);
 
   return new ImageResponse(
@@ -38,17 +44,19 @@ export default async function Image() {
       <div
         style={{
           position: "absolute",
-          left: 80,
-          top: 60,
+          left: 0,
+          right: 0,
+          top: 52,
           display: "flex",
+          justifyContent: "center",
           alignItems: "center",
           gap: 14,
         }}
       >
         {/* biome-ignore lint/performance/noImgElement: satori renders plain img */}
-        <img src={mark} alt="" width={48} height={48} />
+        <img src={mark} alt="" width={52} height={52} />
         <span
-          style={{ fontSize: 30, fontWeight: 600, letterSpacing: "-0.3px" }}
+          style={{ fontSize: 32, fontWeight: 600, letterSpacing: "-0.3px" }}
         >
           leveling0
         </span>
@@ -57,24 +65,14 @@ export default async function Image() {
       <div
         style={{
           position: "absolute",
-          right: 80,
-          top: 70,
-          fontSize: 22,
-          fontWeight: 500,
-          color: "#c23a10",
-        }}
-      >
-        {SITE_URL.replace("https://", "")}
-      </div>
-
-      <div
-        style={{
-          position: "absolute",
-          left: 80,
-          top: 138,
-          fontSize: 66,
+          left: 0,
+          right: 0,
+          top: 124,
+          display: "flex",
+          justifyContent: "center",
+          fontSize: 76,
           fontWeight: 600,
-          letterSpacing: "-1.3px",
+          letterSpacing: "-1.6px",
           lineHeight: 1.05,
         }}
       >
@@ -84,11 +82,14 @@ export default async function Image() {
       <div
         style={{
           position: "absolute",
-          left: 80,
-          top: 226,
-          fontSize: 25,
-          lineHeight: 1.4,
-          color: "#6c6a64",
+          left: 0,
+          right: 0,
+          top: 222,
+          display: "flex",
+          justifyContent: "center",
+          fontSize: 32,
+          lineHeight: 1.3,
+          color: "#5e5c56",
         }}
       >
         Three columns, tags, due dates, markdown. No account needed.
@@ -98,7 +99,7 @@ export default async function Image() {
         style={{
           position: "absolute",
           left: 80,
-          top: 306,
+          top: 300,
           display: "flex",
           width: 1040,
           height: 446,
@@ -114,6 +115,12 @@ export default async function Image() {
         <img src={board} alt="" width={1040} height={446} />
       </div>
     </div>,
-    size,
+    {
+      ...size,
+      fonts: [
+        { name: "Geist", data: regular, weight: 400 },
+        { name: "Geist", data: semibold, weight: 600 },
+      ],
+    },
   );
 }

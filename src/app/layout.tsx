@@ -25,7 +25,10 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: `${SITE_NAME} - ${SITE_TAGLINE}`,
+  title: {
+    default: `${SITE_NAME} - ${SITE_TAGLINE}`,
+    template: `%s - ${SITE_NAME}`,
+  },
   description: SITE_DESCRIPTION,
   openGraph: {
     type: "website",
@@ -38,6 +41,10 @@ export const metadata: Metadata = {
   // og:image and twitter:image tags from that file.
   twitter: {
     card: "summary_large_image",
+  },
+  appleWebApp: {
+    title: SITE_NAME,
+    capable: false,
   },
 };
 
