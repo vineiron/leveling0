@@ -163,7 +163,7 @@ export function Modal({
         }`}
       />
       <div
-        className={`relative flex max-h-[90vh] w-full ${widthClass} ${heightClass} animate-panel-in flex-col overflow-hidden rounded-xl border border-border bg-elevated shadow-xl ${
+        className={`relative flex max-h-[90dvh] w-full ${widthClass} ${heightClass} animate-panel-in flex-col overflow-hidden rounded-xl border border-border bg-elevated shadow-xl ${
           fullScreenWhenShort
             ? "short:h-full short:max-h-none short:max-w-none short:rounded-none short:border-0"
             : ""

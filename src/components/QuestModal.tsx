@@ -279,7 +279,7 @@ export function QuestModal({
               : "New quest"
       }
       widthClass="max-w-5xl"
-      heightClass="h-[85vh]"
+      heightClass="h-[85dvh]"
       fullScreenWhenShort
       hideHeaderBorder
       hideFooterBorder
@@ -318,7 +318,7 @@ export function QuestModal({
       }
     >
       {focusedField ? (
-        <div className="flex h-[72vh] flex-col">
+        <div className="flex h-[72dvh] flex-col">
           <MarkdownField
             label={focusedField === "detail" ? "Detail *" : "Note"}
             value={focusedField === "detail" ? detail : note}
@@ -456,7 +456,7 @@ export function QuestModal({
               </div>
             </div>
 
-            <div className="flex h-[24rem] flex-col overflow-hidden lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:h-[60vh] short:col-start-2 short:row-start-1 short:row-span-2 short:h-[calc(100dvh-10.25rem)]">
+            <div className="flex h-[24rem] flex-col overflow-hidden lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:h-[60dvh] short:col-start-2 short:row-start-1 short:row-span-2 short:h-[calc(100dvh-10.25rem)]">
               <MarkdownField
                 label="Detail *"
                 value={detail}
