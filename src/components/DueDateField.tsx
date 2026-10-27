@@ -415,7 +415,7 @@ export function DueDateField({ value, status, onChange }: Props) {
                     clamp(parseInt(e.target.value || "0", 10) || 0, 0, 23),
                   )
                 }
-                className="w-9 bg-transparent text-center text-sm text-fg outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                className="w-9 bg-transparent text-center text-sm text-fg outline-none pointer-coarse:h-6 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 aria-label="Hour (0-23)"
               />
               <span className="text-faint">:</span>
@@ -429,7 +429,7 @@ export function DueDateField({ value, status, onChange }: Props) {
                     clamp(parseInt(e.target.value || "0", 10) || 0, 0, 59),
                   )
                 }
-                className="w-9 bg-transparent text-center text-sm text-fg outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                className="w-9 bg-transparent text-center text-sm text-fg outline-none pointer-coarse:h-6 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 aria-label="Minute (0-59)"
               />
             </div>
@@ -447,7 +447,7 @@ export function DueDateField({ value, status, onChange }: Props) {
                     setHour(t.h);
                     setMinute(t.m);
                   }}
-                  className="rounded-md bg-surface px-1.5 py-0.5 text-[11px] text-muted transition-colors hover:bg-surface-2 hover:text-fg"
+                  className="tap-target rounded-md bg-surface px-1.5 py-0.5 text-[11px] text-muted transition-colors hover:bg-surface-2 hover:text-fg"
                 >
                   {t.label}
                 </button>
@@ -462,7 +462,7 @@ export function DueDateField({ value, status, onChange }: Props) {
                 onChange(null);
                 setOpen(false);
               }}
-              className="text-xs text-muted transition-colors hover:text-fg"
+              className="tap-target text-xs text-muted transition-colors hover:text-fg"
             >
               Clear
             </button>
