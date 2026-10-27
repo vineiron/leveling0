@@ -4,6 +4,7 @@
    (toggled on <html> by the no-flash script / ThemeProvider) rather than the
    prefers-color-scheme media query. */
 @custom-variant dark (&:where(.dark, .dark *));
+@custom-variant short (@media (width >= 40rem) and (height <= 31.25rem));
 
 /* ----------------------------------------------------------------------------
    leveling0 design tokens — "Fire": Linear-grade structure, ember identity.

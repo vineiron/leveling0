@@ -280,6 +280,7 @@ export function QuestModal({
       }
       widthClass="max-w-5xl"
       heightClass="h-[85vh]"
+      fullScreenWhenShort
       hideHeaderBorder
       hideFooterBorder
       hideClose={Boolean(focusedField)}
@@ -386,8 +387,8 @@ export function QuestModal({
             the primary Detail field comes first of the two. On lg the original
             two-column layout (meta left, tall Detail right) is rebuilt via
             explicit grid placement. */}
-          <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:gap-4">
-            <div className="flex flex-col gap-3.5 lg:col-start-1 lg:row-start-1">
+          <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:gap-4 short:grid short:grid-cols-2">
+            <div className="flex flex-col gap-3.5 lg:col-start-1 lg:row-start-1 short:col-start-1 short:row-start-1">
               <label className="flex flex-col gap-1.5 text-sm">
                 <span className="font-medium text-muted">
                   Title <span className="text-danger-text">*</span>
@@ -455,7 +456,7 @@ export function QuestModal({
               </div>
             </div>
 
-            <div className="flex h-[24rem] flex-col overflow-hidden lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:h-[60vh]">
+            <div className="flex h-[24rem] flex-col overflow-hidden lg:col-start-2 lg:row-start-1 lg:row-span-2 lg:h-[60vh] short:col-start-2 short:row-start-1 short:row-span-2 short:h-[calc(100dvh-10.25rem)]">
               <MarkdownField
                 label="Detail *"
                 value={detail}
@@ -466,7 +467,7 @@ export function QuestModal({
               />
             </div>
 
-            <div className="lg:col-start-1 lg:row-start-2 lg:min-h-0">
+            <div className="lg:col-start-1 lg:row-start-2 lg:min-h-0 short:col-start-1 short:row-start-2">
               <MarkdownField
                 label="Note"
                 value={note}

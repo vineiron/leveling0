@@ -217,8 +217,8 @@ export function DueDateField({ value, status, onChange }: Props) {
       </div>
 
       {open && (
-        <div className="absolute left-0 right-0 top-full z-30 mt-1.5 origin-top animate-pop-in overflow-hidden rounded-xl border border-border bg-elevated p-3 shadow-lg sm:left-auto sm:w-[20rem]">
-          <div className="mb-2 flex items-center justify-between">
+        <div className="absolute left-0 right-0 top-full z-30 mt-1.5 origin-top animate-pop-in overflow-hidden rounded-xl border border-border bg-elevated p-3 shadow-lg sm:left-auto sm:w-[20rem] short:fixed short:top-1/2 short:left-1/2 short:right-auto short:mt-0 short:grid short:w-auto short:-translate-x-1/2 short:-translate-y-1/2 short:grid-cols-[17rem_11rem] short:grid-rows-[auto_auto_1fr] short:gap-x-4 short:shadow-xl">
+          <div className="mb-2 flex items-center justify-between short:col-start-1 short:row-start-1">
             <button
               type="button"
               onClick={() => {
@@ -331,7 +331,7 @@ export function DueDateField({ value, status, onChange }: Props) {
 
           {pickerMode === "days" ? (
             <>
-              <div className="mb-1 grid grid-cols-7 gap-0.5">
+              <div className="mb-1 grid grid-cols-7 gap-0.5 short:col-start-1 short:row-start-2">
                 {WEEKDAYS.map((w) => (
                   <div
                     key={w}
@@ -341,7 +341,7 @@ export function DueDateField({ value, status, onChange }: Props) {
                   </div>
                 ))}
               </div>
-              <div className="grid grid-cols-7 gap-0.5">
+              <div className="grid grid-cols-7 gap-0.5 short:col-start-1 short:row-start-3">
                 {grid.map((day) => {
                   const inMonth = day.getMonth() === viewMonth.getMonth();
                   const isToday = isSameDay(day, today);
@@ -369,7 +369,7 @@ export function DueDateField({ value, status, onChange }: Props) {
               </div>
             </>
           ) : (
-            <div className="grid grid-cols-4 gap-1">
+            <div className="grid grid-cols-4 gap-1 short:col-start-1 short:row-start-2 short:row-span-2">
               {Array.from(
                 { length: 12 },
                 (_, i) => viewMonth.getFullYear() - 5 + i,
@@ -400,7 +400,7 @@ export function DueDateField({ value, status, onChange }: Props) {
             </div>
           )}
 
-          <div className="mt-3 flex flex-wrap items-center gap-2">
+          <div className="mt-3 flex flex-wrap items-center gap-2 short:col-start-2 short:row-start-1 short:row-span-3 short:mt-0 short:self-start">
             <span className="text-[10px] font-medium uppercase tracking-wide text-faint">
               Time
             </span>
@@ -455,7 +455,7 @@ export function DueDateField({ value, status, onChange }: Props) {
             </div>
           </div>
 
-          <div className="mt-3 flex items-center justify-between gap-2">
+          <div className="mt-3 flex items-center justify-between gap-2 short:col-start-2 short:row-start-3 short:mt-0 short:self-end">
             <button
               type="button"
               onClick={() => {
