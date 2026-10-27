@@ -238,7 +238,7 @@ export function Board() {
         onSignInClick={() => setSignInOpen(true)}
       />
 
-      <main className="mx-auto flex w-full max-w-[1500px] flex-1 flex-col gap-4 px-4 py-5 sm:px-6">
+      <main className="mx-auto flex w-full max-w-[1500px] flex-1 flex-col gap-4 px-4 py-5 sm:px-6 max-md:pb-24">
         {error && (
           <div
             role="alert"
