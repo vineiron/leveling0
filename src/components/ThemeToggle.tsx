@@ -35,9 +35,6 @@ const OPTIONS: { value: ResolvedTheme; label: string; icon: ReactNode }[] = [
 
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
-  // Gate the active highlight until mounted: SSR doesn't know the stored
-  // preference, so reflecting it pre-hydration would mismatch. Colors are
-  // already correct via the inline script; only this highlight settles.
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);

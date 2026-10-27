@@ -9,20 +9,14 @@ type Props = {
   title: string;
   children: React.ReactNode;
   widthClass?: string;
-  /** Fixed panel height so the dialog doesn't resize as content swaps. */
   heightClass?: string;
   hideHeaderBorder?: boolean;
   hideFooterBorder?: boolean;
-  /** Hide the header close (X) — use when another control already exits. */
   hideClose?: boolean;
-  /** Optional pinned footer — stays put while the body scrolls. */
   footer?: React.ReactNode;
   fullScreenWhenShort?: boolean;
 };
 
-// Shared open-modal stack so nested modals coordinate: the body scroll
-// lock is ref-counted (only released when the last modal closes) and
-// Escape only closes the top-most modal.
 const modalStack: string[] = [];
 let scrollLockCount = 0;
 
@@ -87,9 +81,7 @@ export function Modal({
   onCloseRef.current = onClose;
   const [showTop, setShowTop] = useState(false);
   const [showBottom, setShowBottom] = useState(false);
-  // True when another modal is already open beneath this one.
   const [isNested, setIsNested] = useState(false);
-  // Portal target only exists on the client; gate the portal until mounted.
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -99,7 +91,6 @@ export function Modal({
     setIsNested(modalStack.length > 0);
     modalStack.push(id);
     lockScroll();
-    // Remember what opened us so focus lands back there on close.
     const opener =
       document.activeElement instanceof HTMLElement
         ? document.activeElement
@@ -107,7 +98,6 @@ export function Modal({
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
-      // Only the top-most modal reacts to Escape.
       if (modalStack[modalStack.length - 1] === id) onCloseRef.current();
     };
     window.addEventListener("keydown", onKey);
@@ -121,8 +111,6 @@ export function Modal({
     };
   }, [open, id]);
 
-  // Track whether the body can scroll further up/down so the hint only
-  // shows in the direction there's hidden content.
   useEffect(() => {
     if (!open) return;
     const el = scrollRef.current;
@@ -194,7 +182,6 @@ export function Modal({
               </svg>
             </button>
           )}
-          {/* Hangs just below the header, over the top of the scroll area. */}
           <div
             aria-hidden="true"
             className={`${FADE_BASE} top-full bg-gradient-to-b from-elevated to-transparent ${

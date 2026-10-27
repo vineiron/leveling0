@@ -16,9 +16,6 @@ async function dataUri(relativePath: string) {
   return `data:image/png;base64,${file.toString("base64")}`;
 }
 
-// Static at build time: no request-time APIs are used, so Next renders this
-// once and serves the PNG. next/og bundles only Geist Regular and passing
-// `fonts` replaces it, so both weights are loaded here.
 export default async function Image() {
   const [mark, board, regular, semibold] = await Promise.all([
     dataUri("brand/leveling0-mark-256.png"),
@@ -35,8 +32,6 @@ export default async function Image() {
         width: "100%",
         height: "100%",
         overflow: "hidden",
-        // Ember tint fading to the canvas. Satori handles linear gradients
-        // with solid stops; radial gradients render wrong.
         background: "linear-gradient(135deg, #fae6de 0%, #fbfaf9 42%)",
         color: "#1b1a18",
       }}

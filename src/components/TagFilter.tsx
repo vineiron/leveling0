@@ -6,7 +6,6 @@ type Props = {
   allTags: string[];
   activeTags: string[];
   onChange: (next: string[]) => void;
-  /** Controlled by Board so the "f" shortcut shares the other global guards. */
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
@@ -23,12 +22,8 @@ export function TagFilter({
   const searchRef = useRef<HTMLInputElement | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
-  // Only scroll the highlighted row into view for keyboard moves — otherwise
-  // the list would jump under the pointer while hovering.
   const keyNav = useRef(false);
 
-  // Fresh query + highlight on every open, and focus the search field —
-  // whether the popover was opened by click or by the "f" shortcut.
   useEffect(() => {
     if (!open) return;
     setTagQuery("");
@@ -40,10 +35,6 @@ export function TagFilter({
   useEffect(() => {
     if (!open) return;
     function onDoc(e: MouseEvent) {
-      // Two TagFilters share this open state (desktop top bar + mobile
-      // toolbar). The one hidden by a media query has no offsetParent and
-      // must ignore outside clicks, or it would close the visible one on
-      // every mousedown — including clicks on a tag row.
       const wrap = wrapRef.current;
       if (!wrap || wrap.offsetParent === null) return;
       if (!wrap.contains(e.target as Node)) onOpenChange(false);
@@ -65,7 +56,6 @@ export function TagFilter({
     return allTags.filter((t) => t.toLowerCase().includes(q));
   }, [allTags, tagQuery]);
 
-  // Keep the highlight in range when the list shrinks (search, tag removed).
   useEffect(() => {
     setSelected((s) =>
       visible.length === 0 ? 0 : Math.min(s, visible.length - 1),
@@ -104,7 +94,6 @@ export function TagFilter({
     } else if (e.key === "Enter") {
       e.preventDefault();
       const tag = visible[selected];
-      // Stay open — filtering is multi-select, so Enter is "toggle", not "pick".
       if (tag) toggle(tag);
     }
   }
@@ -204,8 +193,6 @@ export function TagFilter({
               </button>
             )}
           </div>
-          {/* Options are direct children of the listbox — an intervening <li>
-              would carry an implicit listitem role and break ownership. */}
           <div
             ref={listRef}
             id="tag-filter-list"

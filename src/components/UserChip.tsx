@@ -33,7 +33,6 @@ function avatarColor(seed: string): string {
 type Props = {
   onSignInClick: () => void;
   compactMobile?: boolean;
-  /** Avatar-only until xl — the top bar's centre group needs the room at lg. */
   compactTablet?: boolean;
 };
 

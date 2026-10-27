@@ -1,11 +1,5 @@
 import type { Quest, ReorderPayload } from "./types";
 
-// Applies board reorder groups to a quest list. Each group is the full ordered
-// id list for one column; a quest's new status and position come from the
-// group it appears in. Quests not mentioned in any group are left untouched.
-// Only quests whose status or position actually changed get a new object, and
-// they are stamped with `now` when one is given (persistence), otherwise left
-// as-is (optimistic preview).
 export function applyReorder(
   quests: Quest[],
   groups: ReorderPayload[],

@@ -5,7 +5,7 @@ import { dueState } from "@/lib/quests/due";
 import type { QuestStatus } from "@/lib/quests/types";
 
 type Props = {
-  value: string | null; // ISO string
+  value: string | null;
   status: QuestStatus;
   onChange: (iso: string | null) => void;
 };
@@ -72,7 +72,7 @@ const MONTH_NAMES = [
 
 function buildMonthGrid(viewMonth: Date): Date[] {
   const first = new Date(viewMonth.getFullYear(), viewMonth.getMonth(), 1);
-  const startOffset = first.getDay(); // 0 = Sunday
+  const startOffset = first.getDay();
   const start = new Date(first);
   start.setDate(start.getDate() - startOffset);
   const days: Date[] = [];

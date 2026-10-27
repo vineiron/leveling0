@@ -1,15 +1,12 @@
 import { z } from "zod";
 import { QUEST_STATUSES, type QuestStatus } from "./quests/types";
 
-// Limits sized to realistic personal-board usage, not arbitrary ceilings.
-// They guard against accidental/abusive huge payloads and keep the client
-// markdown renderer fast — not against DB compute cost (text is cheap).
-const TITLE_MAX = 200; // ~35 words; a title is one line
-const DETAIL_MAX = 20_000; // ~15 pages of markdown; a very thorough spec
-const NOTE_MAX = 10_000; // secondary scratch notes, shorter than detail
-const TAG_MAX = 32; // one or two words per tag
-const TAGS_MAX_COUNT = 15; // a task with >15 tags is unusual
-const REORDER_MAX_IDS_PER_GROUP = 1_000; // safety ceiling; real columns are far smaller
+const TITLE_MAX = 200;
+const DETAIL_MAX = 20_000;
+const NOTE_MAX = 10_000;
+const TAG_MAX = 32;
+const TAGS_MAX_COUNT = 15;
+const REORDER_MAX_IDS_PER_GROUP = 1_000;
 
 const questStatusSchema = z.enum(
   QUEST_STATUSES as [QuestStatus, ...QuestStatus[]],
@@ -39,8 +36,6 @@ const tagsSchema = z
   .array(z.string().trim().min(1).max(TAG_MAX))
   .max(TAGS_MAX_COUNT);
 
-// Route param for /api/quests/[id]. A non-UUID would otherwise reach Postgres
-// and fail the uuid cast with a 500 instead of a 404.
 export const questIdSchema = z.string().uuid();
 
 export const createQuestSchema = z

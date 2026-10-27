@@ -36,10 +36,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true });
   }
 
-  // Single bulk UPDATE driven by a VALUES join. The WHERE on user_id ensures
-  // rows not owned by the caller are silently skipped (same behavior as the
-  // prior per-row implementation, but one round-trip instead of N). Every row
-  // is cast explicitly so Postgres never has to infer a bind-param's type.
   const valuesParts = updates.map(
     (u) => sql`(${u.id}::uuid, ${u.status}::quest_status, ${u.position}::int)`,
   );

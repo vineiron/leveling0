@@ -4,8 +4,6 @@ import posthog from "posthog-js";
 import { useEffect } from "react";
 import "./globals.css";
 
-// Last-resort boundary for errors that escape the root layout. It replaces
-// the whole document, so it renders its own <html> and <body>.
 export default function GlobalError({
   error,
   reset,

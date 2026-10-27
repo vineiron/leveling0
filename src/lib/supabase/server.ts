@@ -14,9 +14,7 @@ export async function getSupabaseServer() {
           for (const { name, value, options } of cookiesToSet) {
             cookieStore.set(name, value, options);
           }
-        } catch {
-          // Called from Server Component — middleware will refresh sessions.
-        }
+        } catch {}
       },
     },
   });

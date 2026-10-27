@@ -21,7 +21,6 @@ export function SignInModal({ open, onClose }: Props) {
       setError(error);
       setBusy(false);
     }
-    // On success the browser is redirected to Google — no further state to set.
   }
 
   return (

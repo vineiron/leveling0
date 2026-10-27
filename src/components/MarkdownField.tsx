@@ -104,11 +104,8 @@ type Props = {
   rows?: number;
   fillHeight?: boolean;
   required?: boolean;
-  /** Show an expand affordance that calls back (host opens a focus view). */
   onExpand?: () => void;
-  /** Hide the inline label (e.g. when a host header already names it). */
   hideLabel?: boolean;
-  /** Custom node placed at the left of the toolbar row (e.g. a Back button). */
   headerLeft?: ReactNode;
 };
 

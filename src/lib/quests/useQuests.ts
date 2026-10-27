@@ -73,13 +73,10 @@ export function useQuests(): UseQuests {
     [store],
   );
 
-  // Local-only optimistic apply. Used during drag-over to drive visual feedback
-  // without paying for a network round-trip on every hover tick.
   const previewReorder = useCallback((groups: ReorderPayload[]) => {
     setItems((prev) => applyReorder(prev, groups));
   }, []);
 
-  // Persist the latest reorder state. On failure we refetch to resync the UI.
   const commitReorder = useCallback(
     async (groups: ReorderPayload[]) => {
       try {
