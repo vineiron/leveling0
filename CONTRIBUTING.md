@@ -21,12 +21,10 @@ signed-in user.
 ## Checks
 
 ```bash
+pnpm lint
 pnpm exec tsc --noEmit
 pnpm exec vitest run
 ```
-
-Run `pnpm lint` too when your change touches formatting-sensitive code or if a
-maintainer asks for it.
 
 ## Pull Requests
 
