@@ -125,7 +125,7 @@ export function TopBar({
           />
           {/* Desktop only — on mobile this lives in the page content. */}
           <span
-            className="hidden items-center gap-1.5 rounded-full border border-white/45 bg-elevated/50 px-2 py-0.5 text-[11px] font-medium text-muted shadow-xs backdrop-blur-md dark:border-white/10 dark:bg-surface/50 md:inline-flex"
+            className="hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-white/45 bg-elevated/50 px-2 py-0.5 text-[11px] font-medium text-muted shadow-xs backdrop-blur-md dark:border-white/10 dark:bg-surface/50 md:inline-flex"
             title={
               mode === "remote"
                 ? "Quests sync to your account"
