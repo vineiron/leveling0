@@ -17,6 +17,7 @@ type Props = {
   hideClose?: boolean;
   /** Optional pinned footer — stays put while the body scrolls. */
   footer?: React.ReactNode;
+  fullScreenWhenShort?: boolean;
 };
 
 // Shared open-modal stack so nested modals coordinate: the body scroll
@@ -77,6 +78,7 @@ export function Modal({
   hideFooterBorder = false,
   hideClose = false,
   footer,
+  fullScreenWhenShort = false,
 }: Props) {
   const id = useId();
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -147,7 +149,11 @@ export function Modal({
   if (!open || !mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${
+        fullScreenWhenShort ? "short:p-0" : ""
+      }`}
+    >
       <button
         type="button"
         aria-label="Close"
@@ -157,7 +163,11 @@ export function Modal({
         }`}
       />
       <div
-        className={`relative flex max-h-[90vh] w-full ${widthClass} ${heightClass} animate-panel-in flex-col overflow-hidden rounded-xl border border-border bg-elevated shadow-xl`}
+        className={`relative flex max-h-[90vh] w-full ${widthClass} ${heightClass} animate-panel-in flex-col overflow-hidden rounded-xl border border-border bg-elevated shadow-xl ${
+          fullScreenWhenShort
+            ? "short:h-full short:max-h-none short:max-w-none short:rounded-none short:border-0"
+            : ""
+        }`}
       >
         <div
           className={`relative z-10 flex shrink-0 items-center justify-between px-5 py-3.5 ${
