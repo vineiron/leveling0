@@ -1,5 +1,3 @@
-// Public identity of the deployed site. Used by metadata and the generated
-// Open Graph image so the copy lives in one place.
 export const SITE_URL = "https://leveling0.vercel.app";
 export const SITE_NAME = "leveling0";
 export const SITE_TAGLINE = "less messy leveling";

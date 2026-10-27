@@ -27,8 +27,6 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Skip static assets and the PostHog reverse-proxy path, which only needs
-  // the rewrite in next.config.ts and must not spend a session refresh.
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico|ingest|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],

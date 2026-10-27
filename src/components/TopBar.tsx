@@ -59,8 +59,6 @@ export function TopBar({
   onOpenPalette,
   onSignInClick,
 }: Props) {
-  // Show the platform-correct shortcut hint only after mount (navigator is
-  // client-only and would otherwise mismatch SSR).
   const [isMac, setIsMac] = useState(true);
   useEffect(() => {
     setIsMac(
@@ -76,7 +74,6 @@ export function TopBar({
           <BrandMark />
         </div>
 
-        {/* Desktop only — on mobile these move to a content toolbar + FAB. */}
         <div className="hidden items-center justify-self-center gap-1.5 sm:gap-2 md:flex">
           <button
             type="button"
@@ -123,7 +120,6 @@ export function TopBar({
             className="hidden h-5 w-px bg-border md:block"
             aria-hidden="true"
           />
-          {/* Desktop only — on mobile this lives in the page content. */}
           <span
             className="hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-white/45 bg-elevated/50 px-2 py-0.5 text-[11px] font-medium text-muted shadow-xs backdrop-blur-md dark:border-white/10 dark:bg-surface/50 md:inline-flex"
             title={

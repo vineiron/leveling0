@@ -42,9 +42,7 @@ function clearDraft(key: string) {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.removeItem(key);
-  } catch {
-    // ignore
-  }
+  } catch {}
 }
 
 function relativeAgo(ts: number): string {
@@ -86,8 +84,6 @@ export function QuestModal({
   const [errors, setErrors] = useState<string[]>([]);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [restoredAt, setRestoredAt] = useState<number | null>(null);
-  // When set, the dialog swaps the whole form for a focused full-height
-  // editor of just this field (no second/stacked modal).
   const [focusedField, setFocusedField] = useState<"note" | "detail" | null>(
     null,
   );
@@ -118,12 +114,9 @@ export function QuestModal({
     setNote(v.note);
   }, []);
 
-  // Skip first debounced save when we just opened/restored — it would just rewrite identical data.
   const skipNextSaveRef = useRef(false);
   const titleRef = useRef<HTMLInputElement | null>(null);
 
-  // New quest: land the cursor in Title so typing can start immediately.
-  // Deferred a tick so the portal has mounted and the panel is in the DOM.
   useEffect(() => {
     if (!open || initial) return;
     const t = setTimeout(() => titleRef.current?.focus(), 0);
@@ -162,7 +155,6 @@ export function QuestModal({
     } else {
       applyValues(baseValues);
       setRestoredAt(null);
-      // Stale/matching draft? Clear so it doesn't linger.
       if (draft) clearDraft(draftKey);
     }
 
@@ -172,7 +164,6 @@ export function QuestModal({
     setFocusedField(null);
   }, [open, draftKey, baseValues, applyValues]);
 
-  // Debounced auto-save while modal is open and form differs from base.
   useEffect(() => {
     if (!open) return;
     if (skipNextSaveRef.current) {
@@ -192,9 +183,7 @@ export function QuestModal({
           draftKey,
           JSON.stringify({ ...current, savedAt: Date.now() }),
         );
-      } catch {
-        // ignore quota/serialization errors
-      }
+      } catch {}
     }, 400);
     return () => clearTimeout(t);
   }, [open, draftKey, baseValues, title, status, dueAt, tags, detail, note]);
@@ -382,11 +371,6 @@ export function QuestModal({
               </button>
             </div>
           )}
-          {/* On a single (mobile) column the order is Title, Status/Due, Tags,
-            Detail, Note — i.e. Detail and Note swapped vs. authoring order so
-            the primary Detail field comes first of the two. On lg the original
-            two-column layout (meta left, tall Detail right) is rebuilt via
-            explicit grid placement. */}
           <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:gap-4 short:grid short:grid-cols-2">
             <div className="flex flex-col gap-3.5 lg:col-start-1 lg:row-start-1 short:col-start-1 short:row-start-1">
               <label className="flex flex-col gap-1.5 text-sm">

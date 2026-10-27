@@ -3,7 +3,6 @@ import Link from "next/link";
 
 type IconProps = { className?: string };
 
-/** The ember glyph — leveling0's identity mark. Inherits `currentColor`. */
 export function FlameIcon({ className = "h-[18px] w-[18px]" }: IconProps) {
   return (
     <svg
@@ -23,7 +22,6 @@ export function FlameIcon({ className = "h-[18px] w-[18px]" }: IconProps) {
 
 type BrandMarkProps = {
   className?: string;
-  /** Show the "leveling0" wordmark next to the glyph. */
   withWordmark?: boolean;
 };
 

@@ -29,10 +29,6 @@ function applyResolved(resolved: ResolvedTheme) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  // Initialize synchronously from storage on the client so the provider's
-  // first resolution matches what the inline layout script already applied
-  // (otherwise a stored "dark" + light OS would flash light → dark on load).
-  // SSR has no localStorage and returns "system" deterministically.
   const [theme, setThemeState] = useState<Theme>(() => {
     if (typeof window === "undefined") return "system";
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
@@ -42,8 +38,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   });
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
 
-  // Resolve to a concrete theme, apply it, and follow OS changes while in
-  // "system" mode.
   useEffect(() => {
     const mql = window.matchMedia("(prefers-color-scheme: dark)");
     const resolve = (): ResolvedTheme =>
@@ -66,9 +60,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setThemeState(t);
     try {
       localStorage.setItem(THEME_STORAGE_KEY, t);
-    } catch {
-      // Ignore storage failures (private mode / quota).
-    }
+    } catch {}
   }, []);
 
   const value = useMemo(

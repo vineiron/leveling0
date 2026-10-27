@@ -73,11 +73,6 @@ export function Board() {
     return [...set].sort();
   }, [quests]);
 
-  // Global shortcuts: ⌘/Ctrl-K and "/" both open the command palette, which
-  // is now the single place to search quests and run actions. "f" toggles the
-  // tag filter, "n" opens a new quest in the active column. Bare-key
-  // shortcuts are suppressed while typing or while the palette / a modal
-  // owns the screen.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -119,7 +114,6 @@ export function Board() {
   }, [quests, search, activeTags]);
 
   const grouped = useMemo(() => groupByStatus(filtered), [filtered]);
-  // Reorder works against the raw quests list — we always send the full ordering for affected columns.
   const groupedAll = useMemo(() => groupByStatus(quests), [quests]);
 
   const isFirstLoad = loading && quests.length === 0;
@@ -127,7 +121,6 @@ export function Board() {
   const hasActiveFilters = search.trim().length > 0 || activeTags.length > 0;
   const isEmptyBoard = !loading && quests.length === 0;
 
-  // Pending reorder state accumulated across onDragOver, committed once on drop.
   const pendingGroupsRef = useRef<Map<QuestStatus, string[]>>(new Map());
 
   function isColumnId(id: string) {
@@ -429,7 +422,6 @@ export function Board() {
 
       {isBackgroundSync && <SyncingPill />}
 
-      {/* Mobile primary action — stays reachable while the content scrolls. */}
       <button
         type="button"
         onClick={() => openCreate(mobileTab)}

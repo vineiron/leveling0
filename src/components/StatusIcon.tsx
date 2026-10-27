@@ -11,15 +11,6 @@ type Props = {
   className?: string;
 };
 
-/**
- * Status glyph: scroll (Quest Log), crossed swords (In Pursuit),
- * star (Conquered). Single-color via `currentColor`.
- *
- * All three are Lucide icons (lucide.dev, ISC) on their native 24-grid
- * so the designed geometry and padding stay consistent. The star is
- * filled (rather than Lucide's default outline) so the completed state
- * keeps the heaviest visual weight in the progression.
- */
 export function StatusIcon({ status, className = "h-3.5 w-3.5" }: Props) {
   const cls = `${className} shrink-0 ${COLOR[status]}`;
 

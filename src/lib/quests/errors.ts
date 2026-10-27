@@ -65,8 +65,6 @@ function describeIssue(issue: ZodIssue): string {
   }
 }
 
-// Turns an API error body ({ error, issues } from the Zod-validated routes)
-// into human-readable, per-field messages for display.
 export function toFriendlyMessages(body: unknown, status: number): string[] {
   if (body && typeof body === "object") {
     const b = body as { issues?: unknown; error?: unknown };

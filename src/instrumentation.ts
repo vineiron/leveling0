@@ -1,8 +1,5 @@
 import type { Instrumentation } from "next";
 
-// Forwards every server-side error (route handlers, rendering, the auth
-// callback, proxy) to PostHog. Runs only in the Node runtime; the edge
-// runtime cannot load posthog-node.
 export const onRequestError: Instrumentation.onRequestError = async (
   err,
   request,
@@ -19,7 +16,6 @@ export const onRequestError: Instrumentation.onRequestError = async (
       : undefined;
 
   await posthog.captureExceptionImmediate(err, "leveling0-server", {
-    // One synthetic id for all server errors, and no person profile for it.
     $process_person_profile: false,
     path: request.path,
     method: request.method,
