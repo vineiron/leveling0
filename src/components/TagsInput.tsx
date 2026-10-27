@@ -66,7 +66,7 @@ export function TagsInput({
             <button
               type="button"
               onClick={() => onChange(value.filter((t) => t !== tag))}
-              className="-mr-0.5 flex h-4 w-4 items-center justify-center rounded-full text-faint transition-colors hover:bg-danger-subtle hover:text-danger-text"
+              className="tap-target -mr-0.5 flex h-4 w-4 items-center justify-center rounded-full text-faint transition-colors hover:bg-danger-subtle hover:text-danger-text"
               aria-label={`Remove ${tag}`}
             >
               <svg
