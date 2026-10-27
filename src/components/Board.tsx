@@ -5,7 +5,8 @@ import {
   type DragEndEvent,
   type DragOverEvent,
   type DragStartEvent,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -60,7 +61,10 @@ export function Board() {
   const [mobileTab, setMobileTab] = useState<QuestStatus>("backlog");
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 200, tolerance: 5 },
+    }),
   );
 
   const allTags = useMemo(() => {
