@@ -1,14 +1,9 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { BoardPreview } from "@/components/BoardPreview";
 import { BrandMark } from "@/components/BrandMark";
 import { LandingAuthAction } from "@/components/LandingAuthAction";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { btn } from "@/components/ui";
-
-export const metadata: Metadata = {
-  title: "leveling0 - less messy leveling",
-};
 
 function ArrowIcon() {
   return (
