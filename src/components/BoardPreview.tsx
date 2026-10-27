@@ -4,7 +4,8 @@ import {
   DndContext,
   type DragEndEvent,
   type DragOverEvent,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
@@ -20,7 +21,8 @@ import {
 } from "@/lib/quests/types";
 
 const now = "2026-01-01T00:00:00.000Z";
-const POINTER_ACTIVATION = { distance: 5 };
+const MOUSE_ACTIVATION = { distance: 5 };
+const TOUCH_ACTIVATION = { delay: 200, tolerance: 5 };
 
 const PREVIEW_QUESTS: Record<QuestStatus, Quest[]> = {
   backlog: [
@@ -112,7 +114,8 @@ export function BoardPreview() {
   }> | null>(null);
   const frameRef = useRef<number | null>(null);
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: POINTER_ACTIVATION }),
+    useSensor(MouseSensor, { activationConstraint: MOUSE_ACTIVATION }),
+    useSensor(TouchSensor, { activationConstraint: TOUCH_ACTIVATION }),
   );
 
   useEffect(() => {

@@ -180,7 +180,7 @@ export function QuestCard({ quest, onEdit }: Props) {
           {...attributes}
           {...listeners}
           aria-label="Drag to reorder"
-          className="-my-3 -mr-3 flex shrink-0 cursor-grab items-center justify-center self-stretch rounded-r-xl px-2 text-muted opacity-60 transition hover:bg-surface hover:text-fg active:cursor-grabbing group-hover:opacity-100"
+          className="-my-3 -mr-3 flex shrink-0 cursor-grab items-center justify-center self-stretch rounded-r-xl px-2 text-muted opacity-60 select-none transition [-webkit-touch-callout:none] hover:bg-surface hover:text-fg active:cursor-grabbing group-hover:opacity-100"
         >
           <svg
             className="h-4 w-4"
