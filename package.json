@@ -2,6 +2,7 @@
   "name": "leveling0",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.29.3",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -42,11 +43,5 @@
     "typescript": "~5.9.3",
     "vite": "^8.3.5",
     "vitest": "^4.1.10"
-  },
-  "pnpm": {
-    "overrides": {
-      "postcss": "8.5.28",
-      "esbuild": "0.28.1"
-    }
   }
 }
