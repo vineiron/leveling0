@@ -1,4 +1,4 @@
-name: TypeScript
+name: CI
 
 on:
   push:
@@ -8,9 +8,13 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  typecheck:
-    name: TypeScript Check
+  check:
+    name: Check
     runs-on: ubuntu-latest
 
     steps:
@@ -31,5 +35,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Lint
+        run: pnpm exec biome ci
+
       - name: Type-check
         run: pnpm exec tsc --noEmit
+
+      - name: Test
+        run: pnpm exec vitest run
