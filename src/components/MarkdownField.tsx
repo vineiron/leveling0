@@ -194,7 +194,7 @@ function Editor({
           }`}
         >
           {value.trim() ? (
-            <article className="text-sm">
+            <article className="text-sm wrap-anywhere">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={MD_COMPONENTS}
