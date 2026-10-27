@@ -165,7 +165,7 @@ export function DueDateField({ value, status, onChange }: Props) {
           onClick={() => setOpen((v) => !v)}
           aria-haspopup="dialog"
           aria-expanded={open}
-          className="flex flex-1 items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-left text-sm transition-colors hover:bg-surface-2"
+          className="flex flex-1 items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-left text-sm transition-colors hover:bg-surface-2 pointer-coarse:text-[16px]"
         >
           <svg
             className="h-4 w-4 text-faint"

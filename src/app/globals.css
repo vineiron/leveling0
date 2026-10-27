@@ -326,3 +326,11 @@
     }
   }
 }
+
+@media (pointer: coarse) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
