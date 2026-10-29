@@ -34,3 +34,8 @@ export type ReorderPayload = {
   status: QuestStatus;
   ids: string[];
 };
+
+export type ImportResult = {
+  added: { from: string; quest: Quest }[];
+  alreadyHere: string[];
+};

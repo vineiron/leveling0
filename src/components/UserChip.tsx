@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { questCount } from "@/lib/quests/format";
-import { useBrowserQuestCount } from "@/lib/quests/useBrowserQuestCount";
+import { useBrowserQuests } from "@/lib/quests/useBrowserQuests";
 import { Modal } from "./Modal";
 import { Spinner } from "./Spinner";
 import { btn } from "./ui";
@@ -46,7 +46,7 @@ export function UserChip({
   const { user, signOut } = useAuth();
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const browserCount = useBrowserQuestCount(confirmOpen);
+  const browserCount = useBrowserQuests(confirmOpen).quests.length;
   const [signingOut, setSigningOut] = useState(false);
   const [revealEmail, setRevealEmail] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
