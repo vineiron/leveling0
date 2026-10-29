@@ -1,11 +1,7 @@
 import { z } from "zod";
+import { IMPORT_MAX_QUESTS, QUEST_LIMITS } from "./quests/limits";
 import { QUEST_STATUSES, type QuestStatus } from "./quests/types";
 
-const TITLE_MAX = 200;
-const DETAIL_MAX = 20_000;
-const NOTE_MAX = 10_000;
-const TAG_MAX = 32;
-const TAGS_MAX_COUNT = 15;
 const REORDER_MAX_IDS_PER_GROUP = 1_000;
 
 const questStatusSchema = z.enum(
@@ -33,38 +29,38 @@ const dueAtUpdate = z
   });
 
 const tagsSchema = z
-  .array(z.string().trim().min(1).max(TAG_MAX))
-  .max(TAGS_MAX_COUNT);
+  .array(z.string().trim().min(1).max(QUEST_LIMITS.tag))
+  .max(QUEST_LIMITS.tags);
 
 export const questIdSchema = z.string().uuid();
 
 export const createQuestSchema = z
   .object({
-    title: z.string().trim().min(1).max(TITLE_MAX),
+    title: z.string().trim().min(1).max(QUEST_LIMITS.title),
     status: questStatusSchema,
     dueAt: dueAtCreate,
     tags: tagsSchema.optional().default([]),
     detail: z
       .string()
-      .max(DETAIL_MAX)
+      .max(QUEST_LIMITS.detail)
       .refine((s) => s.trim().length > 0, { message: "Detail is required" }),
-    note: z.string().max(NOTE_MAX).optional().default(""),
+    note: z.string().max(QUEST_LIMITS.note).optional().default(""),
   })
   .strict();
 
 export const updateQuestSchema = z
   .object({
-    title: z.string().trim().min(1).max(TITLE_MAX).optional(),
+    title: z.string().trim().min(1).max(QUEST_LIMITS.title).optional(),
     status: questStatusSchema.optional(),
     position: z.number().int().nonnegative().optional(),
     dueAt: dueAtUpdate,
     tags: tagsSchema.optional(),
     detail: z
       .string()
-      .max(DETAIL_MAX)
+      .max(QUEST_LIMITS.detail)
       .refine((s) => s.trim().length > 0, { message: "Detail is required" })
       .optional(),
-    note: z.string().max(NOTE_MAX).optional(),
+    note: z.string().max(QUEST_LIMITS.note).optional(),
   })
   .strict();
 
@@ -95,3 +91,28 @@ export const reorderSchema = z
     },
     { message: "Duplicate quest IDs across groups" },
   );
+
+const importedAt = isoDateString.transform((s) => new Date(s)).optional();
+
+export const importQuestsSchema = z
+  .object({
+    quests: z
+      .array(
+        createQuestSchema
+          .extend({
+            id: questIdSchema,
+            createdAt: importedAt,
+            updatedAt: importedAt,
+          })
+          .strict(),
+      )
+      .min(1)
+      .max(IMPORT_MAX_QUESTS),
+  })
+  .strict()
+  .refine(
+    (data) => new Set(data.quests.map((q) => q.id)).size === data.quests.length,
+    { message: "Duplicate quest IDs" },
+  );
+
+export type ImportQuest = z.output<typeof importQuestsSchema>["quests"][number];

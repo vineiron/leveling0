@@ -3,14 +3,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const {
   getCurrentUserId,
   selectWhere,
+  selectHolders,
   selectOrderBy,
+  insertValues,
   insertReturning,
   updateReturning,
   deleteReturning,
   dbExecute,
 } = vi.hoisted(() => {
   const selectWhere = vi.fn();
+  const selectHolders = vi.fn();
   const selectOrderBy = vi.fn();
+  const insertValues = vi.fn();
   const insertReturning = vi.fn();
   const updateReturning = vi.fn();
   const deleteReturning = vi.fn();
@@ -19,7 +23,9 @@ const {
   return {
     getCurrentUserId: vi.fn(),
     selectWhere,
+    selectHolders,
     selectOrderBy,
+    insertValues,
     insertReturning,
     updateReturning,
     deleteReturning,
@@ -41,6 +47,13 @@ vi.mock("@/db/client", () => ({
           }),
         };
       }
+      if (arg && typeof arg === "object" && "userId" in (arg as object)) {
+        return {
+          from: () => ({
+            where: selectHolders,
+          }),
+        };
+      }
       return {
         from: () => ({
           where: () => ({
@@ -50,9 +63,13 @@ vi.mock("@/db/client", () => ({
       };
     }),
     insert: vi.fn(() => ({
-      values: () => ({
-        returning: insertReturning,
-      }),
+      values: (rows: unknown) => {
+        insertValues(rows);
+        return {
+          returning: insertReturning,
+          onConflictDoNothing: () => ({ returning: insertReturning }),
+        };
+      },
     })),
     update: vi.fn(() => ({
       set: () => ({
@@ -71,6 +88,7 @@ vi.mock("@/db/client", () => ({
 }));
 
 import { DELETE, PATCH } from "@/app/api/quests/[id]/route";
+import { POST as importPOST } from "@/app/api/quests/import/route";
 import { POST as reorderPOST } from "@/app/api/quests/reorder/route";
 import { GET, POST } from "@/app/api/quests/route";
 
@@ -356,5 +374,113 @@ describe("POST /api/quests/reorder", () => {
     };
     const serialized = JSON.stringify(sqlArg);
     expect(serialized).toContain(OWNER_ID);
+  });
+});
+
+describe("POST /api/quests/import", () => {
+  const URL = "http://localhost:3000/api/quests/import";
+  const MINE = "33333333-3333-4333-8333-333333333333";
+  const THEIRS = "44444444-4444-4444-8444-444444444444";
+  const FRESH = "55555555-5555-4555-8555-555555555555";
+  const SOMEONE_ELSE = "99999999-9999-4999-8999-999999999999";
+  const quest = (id: string) => ({
+    id,
+    title: "From this browser",
+    status: "backlog",
+    detail: "Brought along",
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns 401 when unauthenticated", async () => {
+    getCurrentUserId.mockResolvedValue(null);
+    const response = await importPOST(
+      jsonRequest(URL, "POST", { quests: [quest(FRESH)] }),
+    );
+    expect(response.status).toBe(401);
+    expect(insertValues).not.toHaveBeenCalled();
+  });
+
+  it("returns 403 on CSRF origin mismatch", async () => {
+    getCurrentUserId.mockResolvedValue(OWNER_ID);
+    const response = await importPOST(
+      jsonRequest(
+        URL,
+        "POST",
+        { quests: [quest(FRESH)] },
+        { origin: "https://evil.example" },
+      ),
+    );
+    expect(response.status).toBe(403);
+    expect(insertValues).not.toHaveBeenCalled();
+  });
+
+  it("returns 400 for invalid payloads", async () => {
+    getCurrentUserId.mockResolvedValue(OWNER_ID);
+    const response = await importPOST(
+      jsonRequest(URL, "POST", { quests: [quest(FRESH), quest(FRESH)] }),
+    );
+    expect(response.status).toBe(400);
+    expect(insertValues).not.toHaveBeenCalled();
+  });
+
+  it("adds new quests for the user, skips theirs, and re-ids someone else's", async () => {
+    getCurrentUserId.mockResolvedValue(OWNER_ID);
+    selectHolders.mockResolvedValue([
+      { id: MINE, userId: OWNER_ID },
+      { id: THEIRS, userId: SOMEONE_ELSE },
+    ]);
+    selectWhere.mockResolvedValue([{ maxPos: 4 }]);
+    insertReturning.mockImplementation(
+      async () => insertValues.mock.calls[0][0],
+    );
+
+    const response = await importPOST(
+      jsonRequest(URL, "POST", {
+        quests: [quest(MINE), quest(THEIRS), quest(FRESH)],
+      }),
+    );
+    expect(response.status).toBe(200);
+
+    const rows = insertValues.mock.calls[0][0] as Array<{
+      id: string;
+      userId: string;
+      position: number;
+    }>;
+    expect(rows).toHaveLength(2);
+    expect(rows.every((r) => r.userId === OWNER_ID)).toBe(true);
+    expect(rows.map((r) => r.position)).toEqual([5, 6]);
+    expect(rows[0].id).not.toBe(THEIRS);
+    expect(rows[1].id).toBe(FRESH);
+
+    const body = await response.json();
+    expect(body.alreadyHere).toEqual([MINE]);
+    expect(
+      body.added.map((a: { from: string; quest: { id: string } }) => [
+        a.from,
+        a.quest.id,
+      ]),
+    ).toEqual([
+      [THEIRS, rows[0].id],
+      [FRESH, FRESH],
+    ]);
+  });
+
+  it("skips the insert when everything is already there", async () => {
+    getCurrentUserId.mockResolvedValue(OWNER_ID);
+    selectHolders.mockResolvedValue([{ id: MINE, userId: OWNER_ID }]);
+    selectWhere.mockResolvedValue([{ maxPos: null }]);
+
+    const response = await importPOST(
+      jsonRequest(URL, "POST", { quests: [quest(MINE)] }),
+    );
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({
+      added: [],
+      alreadyHere: [MINE],
+    });
+    expect(insertValues).not.toHaveBeenCalled();
   });
 });
