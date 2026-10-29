@@ -7,6 +7,8 @@ type Props = {
   onChange: (next: string[]) => void;
   suggestions?: string[];
   placeholder?: string;
+  maxTags: number;
+  maxLength: number;
 };
 
 export function TagsInput({
@@ -14,6 +16,8 @@ export function TagsInput({
   onChange,
   suggestions = [],
   placeholder,
+  maxTags,
+  maxLength,
 }: Props) {
   const [draft, setDraft] = useState("");
   const [focused, setFocused] = useState(false);
@@ -38,15 +42,17 @@ export function TagsInput({
     return () => document.removeEventListener("mousedown", onDoc);
   }, [focused]);
 
+  const full = value.length >= maxTags;
+
   function commit(raw?: string) {
     const t = (raw ?? draft).trim();
-    if (!t) return;
+    if (!t || full) return;
     if (!value.includes(t)) onChange([...value, t]);
     setDraft("");
     inputRef.current?.focus();
   }
 
-  const showSuggestions = focused && filteredSuggestions.length > 0;
+  const showSuggestions = focused && !full && filteredSuggestions.length > 0;
   const exactExists =
     suggestions.includes(draft.trim()) || value.includes(draft.trim());
 
@@ -85,6 +91,7 @@ export function TagsInput({
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onFocus={() => setFocused(true)}
+          maxLength={maxLength}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === ",") {
               e.preventDefault();
@@ -102,7 +109,7 @@ export function TagsInput({
         <button
           type="button"
           onClick={() => commit()}
-          disabled={!draft.trim()}
+          disabled={!draft.trim() || full}
           aria-label="Add tag"
           className="ml-auto inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-faint transition-colors hover:bg-surface-2 hover:text-accent-text disabled:opacity-40"
         >
@@ -117,7 +124,9 @@ export function TagsInput({
         </button>
       </div>
       <p className="text-[11px] text-faint">
-        Press Enter, comma, or click + to add a tag.
+        {full
+          ? `${maxTags} tags max. Remove one to add another.`
+          : "Press Enter, comma, or click + to add a tag."}
       </p>
       {showSuggestions && (
         <div className="absolute left-0 right-0 top-full z-20 mt-1.5 origin-top animate-pop-in overflow-hidden rounded-xl border border-border bg-elevated shadow-lg">

@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ApiError } from "@/lib/quests/errors";
+import { ApiError, describeIssue } from "@/lib/quests/errors";
+import { limitIssues, QUEST_LIMITS } from "@/lib/quests/limits";
 import type { Quest, QuestDraft, QuestStatus } from "@/lib/quests/types";
 import { QUEST_STATUSES, STATUS_LABELS } from "@/lib/quests/types";
 import { DueDateField } from "./DueDateField";
@@ -209,6 +210,11 @@ export function QuestModal({
       setErrors(["Detail is required."]);
       return;
     }
+    const tooBig = limitIssues({ title, detail, note, tags });
+    if (tooBig.length > 0) {
+      setErrors(tooBig.map(describeIssue));
+      return;
+    }
     setBusy(true);
     setErrors([]);
     try {
@@ -382,6 +388,7 @@ export function QuestModal({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   required
+                  maxLength={QUEST_LIMITS.title}
                   placeholder="What quest will you take on?"
                   className={FIELD_CLASS}
                 />
@@ -436,6 +443,8 @@ export function QuestModal({
                   value={tags}
                   onChange={setTags}
                   suggestions={allTags}
+                  maxTags={QUEST_LIMITS.tags}
+                  maxLength={QUEST_LIMITS.tag}
                 />
               </div>
             </div>
