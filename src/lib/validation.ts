@@ -94,20 +94,17 @@ export const reorderSchema = z
 
 const importedAt = isoDateString.transform((s) => new Date(s)).optional();
 
+export const importedQuestSchema = createQuestSchema
+  .extend({
+    id: questIdSchema,
+    createdAt: importedAt,
+    updatedAt: importedAt,
+  })
+  .strict();
+
 export const importQuestsSchema = z
   .object({
-    quests: z
-      .array(
-        createQuestSchema
-          .extend({
-            id: questIdSchema,
-            createdAt: importedAt,
-            updatedAt: importedAt,
-          })
-          .strict(),
-      )
-      .min(1)
-      .max(IMPORT_MAX_QUESTS),
+    quests: z.array(importedQuestSchema).min(1).max(IMPORT_MAX_QUESTS),
   })
   .strict()
   .refine(
@@ -115,4 +112,4 @@ export const importQuestsSchema = z
     { message: "Duplicate quest IDs" },
   );
 
-export type ImportQuest = z.output<typeof importQuestsSchema>["quests"][number];
+export type ImportQuest = z.output<typeof importedQuestSchema>;

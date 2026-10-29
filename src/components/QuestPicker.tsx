@@ -14,7 +14,7 @@ type Props = {
   quests: Quest[];
   picked: Set<string>;
   onPickedChange: (next: Set<string>) => void;
-  blockedLabel: (quest: Quest) => string | null;
+  blockedLabel?: (quest: Quest) => string | null;
   disabled?: boolean;
 };
 
@@ -22,7 +22,7 @@ export function QuestPicker({
   quests,
   picked,
   onPickedChange,
-  blockedLabel,
+  blockedLabel = () => null,
   disabled = false,
 }: Props) {
   const columns = QUEST_STATUSES.map((status) => {
@@ -34,7 +34,9 @@ export function QuestPicker({
     return { status, all, open, on };
   });
   const [tab, setTab] = useState<QuestStatus>(
-    () => columns.find((c) => c.all.length > 0)?.status ?? QUEST_STATUSES[0],
+    () =>
+      (columns.find((c) => c.on > 0) ?? columns.find((c) => c.all.length > 0))
+        ?.status ?? QUEST_STATUSES[0],
   );
 
   function setPicked(ids: string[], on: boolean) {

@@ -4,7 +4,6 @@ import {
   apiStore,
   askToMoveAfterSignIn,
   forgetLocal,
-  importToAccount,
   localStore,
   readLocal,
   takeAskToMove,
@@ -175,6 +174,39 @@ describe("browser quests", () => {
     expect(readLocal()).toEqual([]);
   });
 
+  it("imports into this browser, skipping quests already here", async () => {
+    const here = await localStore.create(draft);
+    const done = await localStore.create({ ...draft, status: "done" });
+    const incoming = (id: string, status: Quest["status"]): Quest => ({
+      ...draft,
+      id,
+      status,
+      position: 9,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-02T00:00:00.000Z",
+    });
+
+    const result = await localStore.import([
+      incoming(here.id, "backlog"),
+      incoming("new-backlog", "backlog"),
+      incoming("new-done", "done"),
+      incoming("new-done", "done"),
+    ]);
+
+    expect(result.alreadyHere).toEqual([here.id, "new-done"]);
+    expect(result.added.map((a) => [a.from, a.quest.position])).toEqual([
+      ["new-backlog", here.position + 1],
+      ["new-done", done.position + 1],
+    ]);
+    expect(readLocal().map((q) => q.id)).toEqual([
+      here.id,
+      done.id,
+      "new-backlog",
+      "new-done",
+    ]);
+    expect(readLocal()[2].createdAt).toBe("2026-01-01T00:00:00.000Z");
+  });
+
   it("asks to move once per sign-in", () => {
     expect(takeAskToMove()).toBe(false);
     askToMoveAfterSignIn();
@@ -263,7 +295,7 @@ describe("apiStore", () => {
     const result = { added: [{ from: "q1", quest }], alreadyHere: [] };
     respond(200, result);
 
-    await expect(importToAccount([quest])).resolves.toEqual(result);
+    await expect(apiStore.import([quest])).resolves.toEqual(result);
 
     const { url, init } = lastRequest();
     expect(url).toBe("/api/quests/import");

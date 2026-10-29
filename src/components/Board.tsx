@@ -13,6 +13,11 @@ import {
 import { arrayMove } from "@dnd-kit/sortable";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import {
+  downloadQuests,
+  type QuestFile,
+  readQuestFile,
+} from "@/lib/quests/files";
 import { questCount } from "@/lib/quests/format";
 import { forgetLocal, takeAskToMove } from "@/lib/quests/storage";
 import type { Quest, QuestStatus } from "@/lib/quests/types";
@@ -23,6 +28,8 @@ import { FlameIcon } from "./BrandMark";
 import { BrowserQuestsChip } from "./BrowserQuestsChip";
 import { Column } from "./Column";
 import { CommandPalette } from "./CommandPalette";
+import { ExportQuestsModal } from "./ExportQuestsModal";
+import { ImportQuestsModal } from "./ImportQuestsModal";
 import { MoveQuestsModal } from "./MoveQuestsModal";
 import { QuestModal } from "./QuestModal";
 import { SignInModal } from "./SignInModal";
@@ -71,6 +78,12 @@ export function Board() {
   const [tagFilterOpen, setTagFilterOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState<QuestStatus>("backlog");
   const [moveOpen, setMoveOpen] = useState(false);
+  const [exportPick, setExportPick] = useState<Set<string> | null>(null);
+  const [importing, setImporting] = useState<{
+    name: string;
+    file: QuestFile | null;
+  } | null>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (browserCount > 0 && takeAskToMove()) setMoveOpen(true);
@@ -101,6 +114,8 @@ export function Board() {
         paletteOpen ||
         signInOpen ||
         moveOpen ||
+        exportPick !== null ||
+        importing !== null ||
         editing !== null ||
         adding !== null
       )
@@ -119,7 +134,17 @@ export function Board() {
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [paletteOpen, signInOpen, moveOpen, editing, adding, allTags, mobileTab]);
+  }, [
+    paletteOpen,
+    signInOpen,
+    moveOpen,
+    exportPick,
+    importing,
+    editing,
+    adding,
+    allTags,
+    mobileTab,
+  ]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -243,6 +268,25 @@ export function Board() {
     setEditing(it);
   }
 
+  function exportQuests(status?: QuestStatus) {
+    setExportPick(
+      new Set(
+        quests.filter((q) => !status || q.status === status).map((q) => q.id),
+      ),
+    );
+  }
+
+  function pickFile() {
+    fileRef.current?.click();
+  }
+
+  async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    e.target.value = "";
+    if (!f) return;
+    setImporting({ name: f.name, file: await readQuestFile(await f.text()) });
+  }
+
   async function moveIn(picked: Quest[]) {
     const { added, alreadyHere } = await importQuests(picked);
     forgetLocal([...added.map((a) => a.from), ...alreadyHere]);
@@ -263,6 +307,8 @@ export function Board() {
         onNewQuest={() => openCreate(mobileTab)}
         onOpenPalette={() => setPaletteOpen(true)}
         onSignInClick={() => setSignInOpen(true)}
+        onExport={quests.length > 0 ? () => exportQuests() : undefined}
+        onImport={pickFile}
       />
 
       <main className="mx-auto flex w-full max-w-[1500px] flex-1 flex-col gap-4 px-4 py-5 sm:px-6 max-md:pb-24">
@@ -425,6 +471,13 @@ export function Board() {
                 </button>
               </div>
             )}
+            <button
+              type="button"
+              onClick={pickFile}
+              className="tap-target text-sm text-muted underline-offset-4 transition-colors hover:text-fg hover:underline"
+            >
+              or import a file
+            </button>
           </div>
         ) : isFirstLoad ? (
           <div className="flex flex-1 flex-col gap-3 md:grid md:grid-cols-3">
@@ -471,6 +524,7 @@ export function Board() {
                     filtered={hasActiveFilters}
                     onAdd={openCreate}
                     onEdit={openEdit}
+                    onExport={exportQuests}
                   />
                 </div>
               ))}
@@ -509,6 +563,8 @@ export function Board() {
           setSearch("");
           setActiveTags([]);
         }}
+        onExportAll={() => exportQuests()}
+        onImport={pickFile}
       />
 
       <QuestModal
@@ -523,6 +579,14 @@ export function Board() {
         allTags={allTags}
         onSubmit={handleSubmit}
         onDelete={editing ? () => remove(editing.id) : undefined}
+        onExport={
+          editing
+            ? () =>
+                downloadQuests([
+                  quests.find((q) => q.id === editing.id) ?? editing,
+                ])
+            : undefined
+        }
       />
 
       <SignInModal open={signInOpen} onClose={() => setSignInOpen(false)} />
@@ -535,6 +599,41 @@ export function Board() {
           onClose={() => setMoveOpen(false)}
         />
       )}
+
+      {exportPick && (
+        <ExportQuestsModal
+          quests={quests}
+          initialPicked={exportPick}
+          onClose={() => setExportPick(null)}
+        />
+      )}
+
+      {importing && (
+        <ImportQuestsModal
+          fileName={importing.name}
+          file={importing.file}
+          existingIds={new Set(quests.map((q) => q.id))}
+          into={
+            mode === "remote" ? (user?.email ?? "your account") : "this browser"
+          }
+          onImport={async (picked) => {
+            await importQuests(picked);
+          }}
+          onPickAnother={() => {
+            setImporting(null);
+            pickFile();
+          }}
+          onClose={() => setImporting(null)}
+        />
+      )}
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept="application/json,.json"
+        className="hidden"
+        onChange={onFile}
+      />
     </div>
   );
 }

@@ -19,6 +19,8 @@ type Props = {
   onNewQuest: () => void;
   onOpenPalette: () => void;
   onSignInClick: () => void;
+  onExport?: () => void;
+  onImport: () => void;
 };
 
 function PlusIcon() {
@@ -63,6 +65,8 @@ export function TopBar({
   onNewQuest,
   onOpenPalette,
   onSignInClick,
+  onExport,
+  onImport,
 }: Props) {
   const [isMac, setIsMac] = useState(true);
   useEffect(() => {
@@ -147,7 +151,12 @@ export function TopBar({
               className="hidden md:inline-flex"
             />
           )}
-          <UserChip compactTablet onSignInClick={onSignInClick} />
+          <UserChip
+            compactTablet
+            onSignInClick={onSignInClick}
+            onExport={onExport}
+            onImport={onImport}
+          />
         </div>
       </div>
     </header>
