@@ -24,6 +24,10 @@ function readLocal(): Quest[] {
   }
 }
 
+export function countLocal(): number {
+  return readLocal().length;
+}
+
 function writeLocal(quests: Quest[]) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(LS_KEY, JSON.stringify(quests));

@@ -12,10 +12,13 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { questCount } from "@/lib/quests/format";
 import type { Quest, QuestStatus } from "@/lib/quests/types";
 import { QUEST_STATUSES, STATUS_LABELS } from "@/lib/quests/types";
+import { useBrowserQuestCount } from "@/lib/quests/useBrowserQuestCount";
 import { useQuests } from "@/lib/quests/useQuests";
 import { FlameIcon } from "./BrandMark";
+import { BrowserQuestsChip } from "./BrowserQuestsChip";
 import { Column } from "./Column";
 import { CommandPalette } from "./CommandPalette";
 import { QuestModal } from "./QuestModal";
@@ -50,6 +53,7 @@ export function Board() {
     commitReorder,
     mode,
   } = useQuests();
+  const browserCount = useBrowserQuestCount(mode === "remote");
 
   const [search, setSearch] = useState("");
   const [activeTags, setActiveTags] = useState<string[]>([]);
@@ -225,6 +229,7 @@ export function Board() {
     <div className="flex flex-1 flex-col">
       <TopBar
         mode={mode}
+        browserCount={browserCount}
         allTags={allTags}
         activeTags={activeTags}
         onActiveTagsChange={setActiveTags}
@@ -259,7 +264,8 @@ export function Board() {
 
         {!isEmptyBoard && (
           <div className="flex flex-col gap-4 md:hidden">
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2">
+              {browserCount > 0 && <BrowserQuestsChip count={browserCount} />}
               <span
                 className="inline-flex items-center gap-1.5 rounded-full bg-surface px-2 py-0.5 text-[11px] font-medium text-muted"
                 title={
@@ -343,10 +349,14 @@ export function Board() {
             </span>
             <div className="space-y-1">
               <h2 className="text-base font-semibold text-fg">
-                Start leveling
+                {browserCount > 0
+                  ? "Your account has no quests yet"
+                  : "Start leveling"}
               </h2>
               <p className="max-w-xs text-sm text-muted">
-                You have no quests, create a quest to start leveling.
+                {browserCount > 0
+                  ? `${questCount(browserCount)} ${browserCount === 1 ? "is" : "are"} saved in this browser, not in your account. Sign out to see ${browserCount === 1 ? "it" : "them"}.`
+                  : "You have no quests, create a quest to start leveling."}
               </p>
             </div>
             <div className="flex items-center gap-2">

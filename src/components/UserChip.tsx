@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { questCount } from "@/lib/quests/format";
+import { useBrowserQuestCount } from "@/lib/quests/useBrowserQuestCount";
 import { Modal } from "./Modal";
 import { Spinner } from "./Spinner";
 import { btn } from "./ui";
@@ -44,6 +46,7 @@ export function UserChip({
   const { user, signOut } = useAuth();
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const browserCount = useBrowserQuestCount(confirmOpen);
   const [signingOut, setSigningOut] = useState(false);
   const [revealEmail, setRevealEmail] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
@@ -302,6 +305,11 @@ export function UserChip({
           <span className="font-medium text-fg">{email}</span>. Your synced
           quests stay safe in the cloud.
         </p>
+        {browserCount > 0 && (
+          <p className="mt-2 text-sm text-muted">
+            This browser will show the {questCount(browserCount)} saved here.
+          </p>
+        )}
         <div className="mt-5 flex justify-end gap-2">
           <button
             type="button"

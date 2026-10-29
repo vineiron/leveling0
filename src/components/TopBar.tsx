@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { BrandMark } from "./BrandMark";
+import { BrowserQuestsChip } from "./BrowserQuestsChip";
 import { TagFilter } from "./TagFilter";
 import { ThemeToggle } from "./ThemeToggle";
 import { UserChip } from "./UserChip";
 
 type Props = {
   mode: "remote" | "local";
+  browserCount: number;
   allTags: string[];
   activeTags: string[];
   onActiveTagsChange: (next: string[]) => void;
@@ -50,6 +52,7 @@ function SearchIcon({ className = "h-4 w-4" }: { className?: string }) {
 
 export function TopBar({
   mode,
+  browserCount,
   allTags,
   activeTags,
   onActiveTagsChange,
@@ -135,6 +138,12 @@ export function TopBar({
             />
             {mode === "remote" ? "Synced" : "Local only"}
           </span>
+          {browserCount > 0 && (
+            <BrowserQuestsChip
+              count={browserCount}
+              className="hidden md:inline-flex"
+            />
+          )}
           <UserChip compactTablet onSignInClick={onSignInClick} />
         </div>
       </div>
