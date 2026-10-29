@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createQuestSchema } from "@/lib/validation";
-import { fitsLimits, QUEST_LIMITS } from "./limits";
+import { describeIssue } from "./errors";
+import { fitsLimits, limitIssues, QUEST_LIMITS } from "./limits";
 
 const base = {
   title: "Renew passport",
@@ -30,7 +31,11 @@ describe("fitsLimits", () => {
     ["too many tags", { ...base, tags: [...atMax.tags, "one more"] }, false],
     ["a long tag", { ...base, tags: [`${atMax.tags[0]}x`] }, false],
   ])("agrees with the server schema on %s", (_, quest, fits) => {
+    const server = createQuestSchema.safeParse(quest);
     expect(fitsLimits(quest)).toBe(fits);
-    expect(createQuestSchema.safeParse(quest).success).toBe(fits);
+    expect(server.success).toBe(fits);
+    expect(limitIssues(quest).map(describeIssue)).toEqual(
+      (server.error?.issues ?? []).map(describeIssue),
+    );
   });
 });

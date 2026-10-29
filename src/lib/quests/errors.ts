@@ -1,4 +1,4 @@
-type ZodIssue = {
+export type ZodIssue = {
   code?: string;
   origin?: string;
   path?: (string | number)[];
@@ -36,7 +36,7 @@ function labelFor(path: (string | number)[] | undefined): string {
   return FIELD_LABELS[String(field)] ?? String(field);
 }
 
-function describeIssue(issue: ZodIssue): string {
+export function describeIssue(issue: ZodIssue): string {
   const where = labelFor(issue.path);
   switch (issue.code) {
     case "too_big":

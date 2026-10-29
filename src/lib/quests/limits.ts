@@ -1,3 +1,4 @@
+import type { ZodIssue } from "./errors";
 import type { Quest } from "./types";
 
 export const QUEST_LIMITS = {
@@ -10,14 +11,29 @@ export const QUEST_LIMITS = {
 
 export const IMPORT_MAX_QUESTS = 500;
 
-export function fitsLimits(
-  q: Pick<Quest, "title" | "detail" | "note" | "tags">,
-): boolean {
-  return (
-    q.title.trim().length <= QUEST_LIMITS.title &&
-    q.detail.length <= QUEST_LIMITS.detail &&
-    q.note.length <= QUEST_LIMITS.note &&
-    q.tags.length <= QUEST_LIMITS.tags &&
-    q.tags.every((t) => t.trim().length <= QUEST_LIMITS.tag)
-  );
+type Limited = Pick<Quest, "title" | "detail" | "note" | "tags">;
+
+function over(
+  path: ZodIssue["path"],
+  size: number,
+  maximum: number,
+  origin = "string",
+): ZodIssue[] {
+  return size > maximum ? [{ code: "too_big", origin, maximum, path }] : [];
+}
+
+export function limitIssues(q: Limited): ZodIssue[] {
+  return [
+    ...over(["title"], q.title.trim().length, QUEST_LIMITS.title),
+    ...q.tags.flatMap((t, i) =>
+      over(["tags", i], t.trim().length, QUEST_LIMITS.tag),
+    ),
+    ...over(["tags"], q.tags.length, QUEST_LIMITS.tags, "array"),
+    ...over(["detail"], q.detail.length, QUEST_LIMITS.detail),
+    ...over(["note"], q.note.length, QUEST_LIMITS.note),
+  ];
+}
+
+export function fitsLimits(q: Limited): boolean {
+  return limitIssues(q).length === 0;
 }
