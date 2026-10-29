@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "./errors";
-import { apiStore, localStore } from "./storage";
+import { apiStore, countLocal, localStore } from "./storage";
 import type { QuestDraft } from "./types";
 
 const LS_KEY = "leveling0:items:v1";
@@ -132,6 +132,33 @@ describe("localStore", () => {
     vi.stubGlobal("window", undefined);
     expect(await localStore.list()).toEqual([]);
     await expect(localStore.remove("anything")).resolves.toBeUndefined();
+  });
+});
+
+describe("countLocal", () => {
+  let storage: ReturnType<typeof fakeLocalStorage>;
+
+  beforeEach(() => {
+    storage = fakeLocalStorage();
+    vi.stubGlobal("window", { localStorage: storage });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("counts the quests saved in this browser", async () => {
+    expect(countLocal()).toBe(0);
+    await localStore.create(draft);
+    await localStore.create({ ...draft, status: "done" });
+    expect(countLocal()).toBe(2);
+  });
+
+  it("reads corrupt storage and a missing window as zero", () => {
+    storage.setItem(LS_KEY, "{not json");
+    expect(countLocal()).toBe(0);
+    vi.stubGlobal("window", undefined);
+    expect(countLocal()).toBe(0);
   });
 });
 

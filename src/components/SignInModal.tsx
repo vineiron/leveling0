@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { questCount } from "@/lib/quests/format";
+import { useBrowserQuestCount } from "@/lib/quests/useBrowserQuestCount";
 import { FlameIcon } from "./BrandMark";
 import { Modal } from "./Modal";
 import { Spinner } from "./Spinner";
@@ -12,6 +14,7 @@ export function SignInModal({ open, onClose }: Props) {
   const { signInWithGoogle } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const browserCount = useBrowserQuestCount(open);
 
   async function handleGoogle() {
     setBusy(true);
@@ -44,6 +47,16 @@ export function SignInModal({ open, onClose }: Props) {
             an account, quests stay local in this browser only.
           </p>
         </div>
+
+        {browserCount > 0 && (
+          <p className="w-full rounded-lg border border-accent-border bg-accent-subtle px-3 py-2.5 text-left text-sm text-muted">
+            <span className="font-medium text-fg">
+              {questCount(browserCount)} saved in this browser.
+            </span>{" "}
+            {browserCount === 1 ? "It stays" : "They stay"} here, separate from
+            your account.
+          </p>
+        )}
 
         <button
           type="button"
