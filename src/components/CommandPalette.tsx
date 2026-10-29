@@ -2,6 +2,7 @@
 
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { questCount } from "@/lib/quests/format";
 import type { Quest, QuestStatus } from "@/lib/quests/types";
 import { QUEST_STATUSES, STATUS_LABELS } from "@/lib/quests/types";
 import { useTheme } from "@/lib/theme/ThemeProvider";
@@ -16,6 +17,8 @@ type Props = {
   onSignIn: () => void;
   hasActiveFilters: boolean;
   onClearFilters: () => void;
+  onExportAll: () => void;
+  onImport: () => void;
 };
 
 type Entry = {
@@ -52,6 +55,10 @@ const MOON =
   "M9.353 2.939a.75.75 0 01.157.808 6 6 0 007.743 7.743.75.75 0 01.965.965A7.5 7.5 0 119.353 2.94z";
 const FILTER_X =
   "M3 4.75A.75.75 0 013.75 4h12.5a.75.75 0 01.6 1.2L12 11.31V16a.75.75 0 01-1.17.62l-2.5-1.67A.75.75 0 018 14.33V11.3L3.15 5.2A.75.75 0 013 4.75z";
+const DOWNLOAD =
+  "M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75zM3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z";
+const UPLOAD =
+  "M9.25 13.25a.75.75 0 001.5 0V4.636l2.955 3.129a.75.75 0 001.09-1.03l-4.25-4.5a.75.75 0 00-1.09 0l-4.25 4.5a.75.75 0 101.09 1.03L9.25 4.636v8.614zM3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z";
 const SIGN_IN =
   "M11 3a.75.75 0 000 1.5h2.75a.75.75 0 01.75.75v9.5a.75.75 0 01-.75.75H11a.75.75 0 000 1.5h2.75A2.25 2.25 0 0016 14.75v-9.5A2.25 2.25 0 0013.75 3H11zM7.28 6.97a.75.75 0 10-1.06 1.06l1.22 1.22H3a.75.75 0 000 1.5h4.44L6.22 11.97a.75.75 0 101.06 1.06l2.5-2.5a.75.75 0 000-1.06l-2.5-2.5z";
 const SIGN_OUT =
@@ -66,6 +73,8 @@ export function CommandPalette({
   onSignIn,
   hasActiveFilters,
   onClearFilters,
+  onExportAll,
+  onImport,
 }: Props) {
   const { user, signOut } = useAuth();
   const { resolvedTheme, setTheme } = useTheme();
@@ -129,6 +138,26 @@ export function CommandPalette({
         run: () => setTheme("dark"),
       },
     );
+    if (quests.length > 0) {
+      list.push({
+        id: "data:export",
+        group: "Data",
+        label: "Export all quests",
+        hint: questCount(quests.length),
+        keywords: "download backup save json file",
+        icon: <I d={DOWNLOAD} />,
+        run: onExportAll,
+      });
+    }
+    list.push({
+      id: "data:import",
+      group: "Data",
+      label: "Import quests…",
+      hint: user ? "Into your account" : "Into this browser",
+      keywords: "upload restore load json file",
+      icon: <I d={UPLOAD} />,
+      run: onImport,
+    });
     if (user) {
       list.push({
         id: "account:signout",
@@ -155,9 +184,12 @@ export function CommandPalette({
     user,
     resolvedTheme,
     hasActiveFilters,
+    quests.length,
     onCreate,
     onClearFilters,
     onSignIn,
+    onExportAll,
+    onImport,
     setTheme,
     signOut,
   ]);

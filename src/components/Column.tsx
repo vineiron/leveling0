@@ -16,9 +16,17 @@ type Props = {
   filtered: boolean;
   onAdd: (status: QuestStatus) => void;
   onEdit: (quest: Quest) => void;
+  onExport?: (status: QuestStatus) => void;
 };
 
-export function Column({ status, quests, filtered, onAdd, onEdit }: Props) {
+export function Column({
+  status,
+  quests,
+  filtered,
+  onAdd,
+  onEdit,
+  onExport,
+}: Props) {
   const { setNodeRef, isOver } = useDroppable({
     id: `column:${status}`,
     data: { status },
@@ -37,22 +45,43 @@ export function Column({ status, quests, filtered, onAdd, onEdit }: Props) {
             {quests.length}
           </span>
         </div>
-        <button
-          type="button"
-          onClick={() => onAdd(status)}
-          className="flex h-6 w-6 items-center justify-center rounded-md text-faint transition-colors hover:bg-surface-2 hover:text-accent-text"
-          aria-label={`Add to ${STATUS_LABELS[status]}`}
-          title={`Add to ${STATUS_LABELS[status]}`}
-        >
-          <svg
-            className="h-4 w-4"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            aria-hidden="true"
+        <div className="flex items-center gap-0.5">
+          {onExport && quests.length > 0 && (
+            <button
+              type="button"
+              onClick={() => onExport(status)}
+              className="flex h-6 w-6 items-center justify-center rounded-md text-faint transition-colors hover:bg-surface-2 hover:text-fg"
+              aria-label={`Export ${STATUS_LABELS[status]}`}
+              title={`Export ${STATUS_LABELS[status]}`}
+            >
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z" />
+                <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
+              </svg>
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => onAdd(status)}
+            className="flex h-6 w-6 items-center justify-center rounded-md text-faint transition-colors hover:bg-surface-2 hover:text-accent-text"
+            aria-label={`Add to ${STATUS_LABELS[status]}`}
+            title={`Add to ${STATUS_LABELS[status]}`}
           >
-            <path d="M10 4a.75.75 0 01.75.75v4.5h4.5a.75.75 0 010 1.5h-4.5v4.5a.75.75 0 01-1.5 0v-4.5h-4.5a.75.75 0 010-1.5h4.5v-4.5A.75.75 0 0110 4z" />
-          </svg>
-        </button>
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path d="M10 4a.75.75 0 01.75.75v4.5h4.5a.75.75 0 010 1.5h-4.5v4.5a.75.75 0 01-1.5 0v-4.5h-4.5a.75.75 0 010-1.5h4.5v-4.5A.75.75 0 0110 4z" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       <SortableContext items={ids} strategy={verticalListSortingStrategy}>

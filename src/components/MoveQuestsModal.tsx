@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ApiError } from "@/lib/quests/errors";
+import { useState } from "react";
 import { questCount } from "@/lib/quests/format";
 import { fitsLimits, IMPORT_MAX_QUESTS } from "@/lib/quests/limits";
 import type { Quest } from "@/lib/quests/types";
+import { useQuestTransfer } from "@/lib/quests/useQuestTransfer";
 import { Modal } from "./Modal";
+import { Note } from "./Note";
 import { QuestPicker } from "./QuestPicker";
 import { btn } from "./ui";
 
@@ -18,61 +19,15 @@ type Props = {
 
 const blockedLabel = (q: Quest) => (fitsLimits(q) ? null : "Too long");
 
-function Note({
-  tone,
-  title,
-  children,
-}: {
-  tone: "warn" | "danger";
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      role={tone === "danger" ? "alert" : "status"}
-      className={`rounded-lg border px-3 py-2.5 text-sm ${
-        tone === "danger"
-          ? "border-danger-border bg-danger-subtle text-danger-text"
-          : "border-warning-border bg-warning-subtle text-muted"
-      }`}
-    >
-      <span className={`font-medium ${tone === "warn" ? "text-fg" : ""}`}>
-        {title}
-      </span>{" "}
-      {children}
-    </div>
-  );
-}
-
 export function MoveQuestsModal({ quests, email, onMove, onClose }: Props) {
   const [picked, setPicked] = useState(
     () => new Set(quests.filter(fitsLimits).map((q) => q.id)),
   );
-  const [moving, setMoving] = useState(false);
-  const [failure, setFailure] = useState<string | null>(null);
+  const { working: moving, failure, run } = useQuestTransfer(onMove, onClose);
 
   const chosen = quests.filter((q) => picked.has(q.id) && fitsLimits(q));
   const tooLong = quests.filter((q) => !fitsLimits(q));
   const overMax = chosen.length > IMPORT_MAX_QUESTS;
-
-  useEffect(() => {
-    if (!moving) return;
-    const stay = (e: BeforeUnloadEvent) => e.preventDefault();
-    window.addEventListener("beforeunload", stay);
-    return () => window.removeEventListener("beforeunload", stay);
-  }, [moving]);
-
-  async function move() {
-    setMoving(true);
-    setFailure(null);
-    try {
-      await onMove(chosen);
-      onClose();
-    } catch (e) {
-      setFailure(e instanceof ApiError ? e.message : "The connection dropped.");
-      setMoving(false);
-    }
-  }
 
   return (
     <Modal
@@ -90,7 +45,7 @@ export function MoveQuestsModal({ quests, email, onMove, onClose }: Props) {
           )}
           <button
             type="button"
-            onClick={move}
+            onClick={() => run(chosen)}
             disabled={moving || chosen.length === 0 || overMax}
             className={btn.primary}
           >

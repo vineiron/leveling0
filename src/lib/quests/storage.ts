@@ -1,4 +1,5 @@
 import { ApiError, toFriendlyMessages } from "./errors";
+import { fileQuest } from "./files";
 import { applyReorder } from "./reorder";
 import type { ImportResult, Quest, QuestDraft, ReorderPayload } from "./types";
 
@@ -60,6 +61,7 @@ export type QuestStore = {
   ): Promise<Quest>;
   remove(id: string): Promise<void>;
   reorder(groups: ReorderPayload[]): Promise<void>;
+  import(quests: Quest[]): Promise<ImportResult>;
 };
 
 export const localStore: QuestStore = {
@@ -110,6 +112,28 @@ export const localStore: QuestStore = {
   },
   async reorder(groups) {
     writeLocal(applyReorder(readLocal(), groups, new Date().toISOString()));
+  },
+  async import(incoming) {
+    const quests = readLocal();
+    const have = new Set(quests.map((q) => q.id));
+    const next = new Map<string, number>();
+    for (const q of quests)
+      next.set(q.status, Math.max(next.get(q.status) ?? 0, q.position + 1));
+    const result: ImportResult = { added: [], alreadyHere: [] };
+    for (const q of incoming) {
+      if (have.has(q.id)) {
+        result.alreadyHere.push(q.id);
+        continue;
+      }
+      have.add(q.id);
+      const position = next.get(q.status) ?? 0;
+      next.set(q.status, position + 1);
+      const quest: Quest = { ...fileQuest(q), position };
+      quests.push(quest);
+      result.added.push({ from: q.id, quest });
+    }
+    writeLocal(quests);
+    return result;
   },
 };
 
@@ -170,26 +194,13 @@ export const apiStore: QuestStore = {
       }),
     );
   },
-};
-
-export async function importToAccount(quests: Quest[]): Promise<ImportResult> {
-  return jsonOrThrow(
-    await fetch("/api/quests/import", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        quests: quests.map((q) => ({
-          id: q.id,
-          title: q.title,
-          status: q.status,
-          dueAt: q.dueAt,
-          tags: q.tags,
-          detail: q.detail,
-          note: q.note,
-          createdAt: q.createdAt,
-          updatedAt: q.updatedAt,
-        })),
+  async import(quests) {
+    return jsonOrThrow(
+      await fetch("/api/quests/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quests: quests.map(fileQuest) }),
       }),
-    }),
-  );
-}
+    );
+  },
+};

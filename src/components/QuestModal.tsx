@@ -63,6 +63,7 @@ type Props = {
   allTags?: string[];
   onSubmit: (draft: QuestDraft) => Promise<void>;
   onDelete?: () => Promise<void>;
+  onExport?: () => void;
 };
 
 export function QuestModal({
@@ -74,6 +75,7 @@ export function QuestModal({
   allTags = [],
   onSubmit,
   onDelete,
+  onExport,
 }: Props) {
   const [title, setTitle] = useState("");
   const [status, setStatus] = useState<QuestStatus>(defaultStatus);
@@ -282,7 +284,7 @@ export function QuestModal({
       footer={
         focusedField ? undefined : (
           <div className="flex items-center justify-between gap-2">
-            <div>
+            <div className="flex gap-2">
               {onDelete && (
                 <button
                   type="button"
@@ -291,6 +293,16 @@ export function QuestModal({
                   className={btn.danger}
                 >
                   Delete
+                </button>
+              )}
+              {onExport && (
+                <button
+                  type="button"
+                  onClick={onExport}
+                  className={btn.secondary}
+                  title="Download this quest as a file"
+                >
+                  Export
                 </button>
               )}
             </div>

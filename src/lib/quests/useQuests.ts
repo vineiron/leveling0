@@ -3,12 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { applyReorder } from "./reorder";
-import {
-  apiStore,
-  importToAccount,
-  localStore,
-  type QuestStore,
-} from "./storage";
+import { apiStore, localStore, type QuestStore } from "./storage";
 import type { ImportResult, Quest, QuestDraft, ReorderPayload } from "./types";
 
 export type UseQuests = {
@@ -95,11 +90,14 @@ export function useQuests(): UseQuests {
     [store, refresh],
   );
 
-  const importQuests = useCallback(async (list: Quest[]) => {
-    const result = await importToAccount(list);
-    setItems((prev) => [...prev, ...result.added.map((a) => a.quest)]);
-    return result;
-  }, []);
+  const importQuests = useCallback(
+    async (list: Quest[]) => {
+      const result = await store.import(list);
+      setItems((prev) => [...prev, ...result.added.map((a) => a.quest)]);
+      return result;
+    },
+    [store],
+  );
 
   return useMemo(
     () => ({
