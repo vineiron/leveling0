@@ -1,8 +1,9 @@
 import { ApiError, toFriendlyMessages } from "./errors";
 import { applyReorder } from "./reorder";
-import type { Quest, QuestDraft, ReorderPayload } from "./types";
+import type { ImportResult, Quest, QuestDraft, ReorderPayload } from "./types";
 
 const LS_KEY = "leveling0:items:v1";
+const ASK_KEY = "leveling0:ask-to-move";
 
 function uid() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -11,7 +12,7 @@ function uid() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
-function readLocal(): Quest[] {
+export function readLocal(): Quest[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(LS_KEY);
@@ -24,13 +25,30 @@ function readLocal(): Quest[] {
   }
 }
 
-export function countLocal(): number {
-  return readLocal().length;
-}
-
 function writeLocal(quests: Quest[]) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(LS_KEY, JSON.stringify(quests));
+}
+
+export function forgetLocal(ids: string[]) {
+  const gone = new Set(ids);
+  writeLocal(readLocal().filter((q) => !gone.has(q.id)));
+}
+
+export function askToMoveAfterSignIn() {
+  try {
+    window.sessionStorage.setItem(ASK_KEY, "1");
+  } catch {}
+}
+
+export function takeAskToMove(): boolean {
+  try {
+    const asked = window.sessionStorage.getItem(ASK_KEY) !== null;
+    window.sessionStorage.removeItem(ASK_KEY);
+    return asked;
+  } catch {
+    return false;
+  }
 }
 
 export type QuestStore = {
@@ -153,3 +171,25 @@ export const apiStore: QuestStore = {
     );
   },
 };
+
+export async function importToAccount(quests: Quest[]): Promise<ImportResult> {
+  return jsonOrThrow(
+    await fetch("/api/quests/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        quests: quests.map((q) => ({
+          id: q.id,
+          title: q.title,
+          status: q.status,
+          dueAt: q.dueAt,
+          tags: q.tags,
+          detail: q.detail,
+          note: q.note,
+          createdAt: q.createdAt,
+          updatedAt: q.updatedAt,
+        })),
+      }),
+    }),
+  );
+}

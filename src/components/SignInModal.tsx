@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { questCount } from "@/lib/quests/format";
-import { useBrowserQuestCount } from "@/lib/quests/useBrowserQuestCount";
+import { askToMoveAfterSignIn } from "@/lib/quests/storage";
+import { useBrowserQuests } from "@/lib/quests/useBrowserQuests";
 import { FlameIcon } from "./BrandMark";
 import { Modal } from "./Modal";
 import { Spinner } from "./Spinner";
@@ -14,11 +15,12 @@ export function SignInModal({ open, onClose }: Props) {
   const { signInWithGoogle } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const browserCount = useBrowserQuestCount(open);
+  const browserCount = useBrowserQuests(open).quests.length;
 
   async function handleGoogle() {
     setBusy(true);
     setError(null);
+    if (browserCount > 0) askToMoveAfterSignIn();
     const { error } = await signInWithGoogle();
     if (error) {
       setError(error);
@@ -53,8 +55,8 @@ export function SignInModal({ open, onClose }: Props) {
             <span className="font-medium text-fg">
               {questCount(browserCount)} saved in this browser.
             </span>{" "}
-            {browserCount === 1 ? "It stays" : "They stay"} here, separate from
-            your account.
+            Right after signing in, you&apos;ll be asked whether to bring{" "}
+            {browserCount === 1 ? "it" : "them"} along.
           </p>
         )}
 

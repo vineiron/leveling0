@@ -10,6 +10,7 @@ import { UserChip } from "./UserChip";
 type Props = {
   mode: "remote" | "local";
   browserCount: number;
+  onBrowserQuestsClick: () => void;
   allTags: string[];
   activeTags: string[];
   onActiveTagsChange: (next: string[]) => void;
@@ -53,6 +54,7 @@ function SearchIcon({ className = "h-4 w-4" }: { className?: string }) {
 export function TopBar({
   mode,
   browserCount,
+  onBrowserQuestsClick,
   allTags,
   activeTags,
   onActiveTagsChange,
@@ -141,6 +143,7 @@ export function TopBar({
           {browserCount > 0 && (
             <BrowserQuestsChip
               count={browserCount}
+              onClick={onBrowserQuestsClick}
               className="hidden md:inline-flex"
             />
           )}

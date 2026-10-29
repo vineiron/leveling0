@@ -3,8 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { applyReorder } from "./reorder";
-import { apiStore, localStore, type QuestStore } from "./storage";
-import type { Quest, QuestDraft, ReorderPayload } from "./types";
+import {
+  apiStore,
+  importToAccount,
+  localStore,
+  type QuestStore,
+} from "./storage";
+import type { ImportResult, Quest, QuestDraft, ReorderPayload } from "./types";
 
 export type UseQuests = {
   quests: Quest[];
@@ -16,6 +21,7 @@ export type UseQuests = {
   remove: (id: string) => Promise<void>;
   previewReorder: (groups: ReorderPayload[]) => void;
   commitReorder: (groups: ReorderPayload[]) => Promise<void>;
+  importQuests: (quests: Quest[]) => Promise<ImportResult>;
   mode: "local" | "remote";
 };
 
@@ -89,6 +95,12 @@ export function useQuests(): UseQuests {
     [store, refresh],
   );
 
+  const importQuests = useCallback(async (list: Quest[]) => {
+    const result = await importToAccount(list);
+    setItems((prev) => [...prev, ...result.added.map((a) => a.quest)]);
+    return result;
+  }, []);
+
   return useMemo(
     () => ({
       quests,
@@ -100,6 +112,7 @@ export function useQuests(): UseQuests {
       remove,
       previewReorder,
       commitReorder,
+      importQuests,
       mode,
     }),
     [
@@ -113,6 +126,7 @@ export function useQuests(): UseQuests {
       remove,
       previewReorder,
       commitReorder,
+      importQuests,
       mode,
     ],
   );

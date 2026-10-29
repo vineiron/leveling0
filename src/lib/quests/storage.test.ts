@@ -1,7 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "./errors";
-import { apiStore, countLocal, localStore } from "./storage";
-import type { QuestDraft } from "./types";
+import {
+  apiStore,
+  askToMoveAfterSignIn,
+  forgetLocal,
+  importToAccount,
+  localStore,
+  readLocal,
+  takeAskToMove,
+} from "./storage";
+import type { Quest, QuestDraft } from "./types";
 
 const LS_KEY = "leveling0:items:v1";
 
@@ -135,30 +143,43 @@ describe("localStore", () => {
   });
 });
 
-describe("countLocal", () => {
+describe("browser quests", () => {
   let storage: ReturnType<typeof fakeLocalStorage>;
 
   beforeEach(() => {
     storage = fakeLocalStorage();
-    vi.stubGlobal("window", { localStorage: storage });
+    vi.stubGlobal("window", {
+      localStorage: storage,
+      sessionStorage: fakeLocalStorage(),
+    });
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it("counts the quests saved in this browser", async () => {
-    expect(countLocal()).toBe(0);
-    await localStore.create(draft);
-    await localStore.create({ ...draft, status: "done" });
-    expect(countLocal()).toBe(2);
+  it("reads what is saved and forgets only the given ids", async () => {
+    const a = await localStore.create(draft);
+    const b = await localStore.create({ ...draft, status: "done" });
+    expect(readLocal().map((q) => q.id)).toEqual([a.id, b.id]);
+
+    forgetLocal([a.id, "not-here"]);
+
+    expect(readLocal().map((q) => q.id)).toEqual([b.id]);
   });
 
-  it("reads corrupt storage and a missing window as zero", () => {
+  it("reads corrupt storage and a missing window as empty", () => {
     storage.setItem(LS_KEY, "{not json");
-    expect(countLocal()).toBe(0);
+    expect(readLocal()).toEqual([]);
     vi.stubGlobal("window", undefined);
-    expect(countLocal()).toBe(0);
+    expect(readLocal()).toEqual([]);
+  });
+
+  it("asks to move once per sign-in", () => {
+    expect(takeAskToMove()).toBe(false);
+    askToMoveAfterSignIn();
+    expect(takeAskToMove()).toBe(true);
+    expect(takeAskToMove()).toBe(false);
   });
 });
 
@@ -229,6 +250,26 @@ describe("apiStore", () => {
     await apiStore.reorder(groups);
     expect(lastRequest().url).toBe("/api/quests/reorder");
     expect(JSON.parse(String(lastRequest().init?.body))).toEqual({ groups });
+  });
+
+  it("imports quests without their positions", async () => {
+    const quest: Quest = {
+      ...draft,
+      id: "q1",
+      position: 4,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-02T00:00:00.000Z",
+    };
+    const result = { added: [{ from: "q1", quest }], alreadyHere: [] };
+    respond(200, result);
+
+    await expect(importToAccount([quest])).resolves.toEqual(result);
+
+    const { url, init } = lastRequest();
+    expect(url).toBe("/api/quests/import");
+    expect(init?.method).toBe("POST");
+    const { position: _, ...sent } = quest;
+    expect(JSON.parse(String(init?.body))).toEqual({ quests: [sent] });
   });
 
   it("turns validation issues into per-field messages", async () => {

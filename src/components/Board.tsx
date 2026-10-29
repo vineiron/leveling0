@@ -12,15 +12,18 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useAuth } from "@/lib/auth/AuthProvider";
 import { questCount } from "@/lib/quests/format";
+import { forgetLocal, takeAskToMove } from "@/lib/quests/storage";
 import type { Quest, QuestStatus } from "@/lib/quests/types";
 import { QUEST_STATUSES, STATUS_LABELS } from "@/lib/quests/types";
-import { useBrowserQuestCount } from "@/lib/quests/useBrowserQuestCount";
+import { useBrowserQuests } from "@/lib/quests/useBrowserQuests";
 import { useQuests } from "@/lib/quests/useQuests";
 import { FlameIcon } from "./BrandMark";
 import { BrowserQuestsChip } from "./BrowserQuestsChip";
 import { Column } from "./Column";
 import { CommandPalette } from "./CommandPalette";
+import { MoveQuestsModal } from "./MoveQuestsModal";
 import { QuestModal } from "./QuestModal";
 import { SignInModal } from "./SignInModal";
 import { SkeletonCard } from "./SkeletonCard";
@@ -28,6 +31,7 @@ import { StatusIcon } from "./StatusIcon";
 import { SyncingPill } from "./SyncingPill";
 import { TagFilter } from "./TagFilter";
 import { TopBar } from "./TopBar";
+import { btn } from "./ui";
 
 function groupByStatus(quests: Quest[]): Record<QuestStatus, Quest[]> {
   const out: Record<QuestStatus, Quest[]> = {
@@ -51,9 +55,12 @@ export function Board() {
     remove,
     previewReorder,
     commitReorder,
+    importQuests,
     mode,
   } = useQuests();
-  const browserCount = useBrowserQuestCount(mode === "remote");
+  const { user } = useAuth();
+  const browser = useBrowserQuests(mode === "remote");
+  const browserCount = browser.quests.length;
 
   const [search, setSearch] = useState("");
   const [activeTags, setActiveTags] = useState<string[]>([]);
@@ -63,6 +70,11 @@ export function Board() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [tagFilterOpen, setTagFilterOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState<QuestStatus>("backlog");
+  const [moveOpen, setMoveOpen] = useState(false);
+
+  useEffect(() => {
+    if (browserCount > 0 && takeAskToMove()) setMoveOpen(true);
+  }, [browserCount]);
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -85,7 +97,13 @@ export function Board() {
         return;
       }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (paletteOpen || signInOpen || editing !== null || adding !== null)
+      if (
+        paletteOpen ||
+        signInOpen ||
+        moveOpen ||
+        editing !== null ||
+        adding !== null
+      )
         return;
       const key = e.key === "/" ? "/" : e.key.toLowerCase();
       if (key !== "/" && key !== "f" && key !== "n") return;
@@ -101,7 +119,7 @@ export function Board() {
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [paletteOpen, signInOpen, editing, adding, allTags, mobileTab]);
+  }, [paletteOpen, signInOpen, moveOpen, editing, adding, allTags, mobileTab]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -225,11 +243,18 @@ export function Board() {
     setEditing(it);
   }
 
+  async function moveIn(picked: Quest[]) {
+    const { added, alreadyHere } = await importQuests(picked);
+    forgetLocal([...added.map((a) => a.from), ...alreadyHere]);
+    browser.reload();
+  }
+
   return (
     <div className="flex flex-1 flex-col">
       <TopBar
         mode={mode}
         browserCount={browserCount}
+        onBrowserQuestsClick={() => setMoveOpen(true)}
         allTags={allTags}
         activeTags={activeTags}
         onActiveTagsChange={setActiveTags}
@@ -265,7 +290,12 @@ export function Board() {
         {!isEmptyBoard && (
           <div className="flex flex-col gap-4 md:hidden">
             <div className="flex justify-end gap-2">
-              {browserCount > 0 && <BrowserQuestsChip count={browserCount} />}
+              {browserCount > 0 && (
+                <BrowserQuestsChip
+                  count={browserCount}
+                  onClick={() => setMoveOpen(true)}
+                />
+              )}
               <span
                 className="inline-flex items-center gap-1.5 rounded-full bg-surface px-2 py-0.5 text-[11px] font-medium text-muted"
                 title={
@@ -355,27 +385,46 @@ export function Board() {
               </h2>
               <p className="max-w-xs text-sm text-muted">
                 {browserCount > 0
-                  ? `${questCount(browserCount)} ${browserCount === 1 ? "is" : "are"} saved in this browser, not in your account. Sign out to see ${browserCount === 1 ? "it" : "them"}.`
+                  ? `${questCount(browserCount)} ${browserCount === 1 ? "is" : "are"} saved in this browser. Bring ${browserCount === 1 ? "it" : "them"} in to see ${browserCount === 1 ? "it" : "them"} on every device.`
                   : "You have no quests, create a quest to start leveling."}
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => openCreate("backlog")}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-fg shadow-sm transition-all duration-150 ease-[cubic-bezier(.2,.9,.25,1)] hover:bg-accent-hover hover:shadow-[0_2px_14px_var(--accent-glow)] active:scale-[.97]"
-              >
-                <svg
-                  className="h-4 w-4"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
+            {browserCount > 0 ? (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setMoveOpen(true)}
+                  className={btn.primary}
                 >
-                  <path d="M10 4a.75.75 0 01.75.75v4.5h4.5a.75.75 0 010 1.5h-4.5v4.5a.75.75 0 01-1.5 0v-4.5h-4.5a.75.75 0 010-1.5h4.5v-4.5A.75.75 0 0110 4z" />
-                </svg>
-                Create your first quest
-              </button>
-            </div>
+                  Bring {browserCount === 1 ? "it" : "them"} here
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openCreate("backlog")}
+                  className={btn.secondary}
+                >
+                  Create a quest
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => openCreate("backlog")}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-accent px-3.5 text-sm font-medium text-accent-fg shadow-sm transition-all duration-150 ease-[cubic-bezier(.2,.9,.25,1)] hover:bg-accent-hover hover:shadow-[0_2px_14px_var(--accent-glow)] active:scale-[.97]"
+                >
+                  <svg
+                    className="h-4 w-4"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path d="M10 4a.75.75 0 01.75.75v4.5h4.5a.75.75 0 010 1.5h-4.5v4.5a.75.75 0 01-1.5 0v-4.5h-4.5a.75.75 0 010-1.5h4.5v-4.5A.75.75 0 0110 4z" />
+                  </svg>
+                  Create your first quest
+                </button>
+              </div>
+            )}
           </div>
         ) : isFirstLoad ? (
           <div className="flex flex-1 flex-col gap-3 md:grid md:grid-cols-3">
@@ -477,6 +526,15 @@ export function Board() {
       />
 
       <SignInModal open={signInOpen} onClose={() => setSignInOpen(false)} />
+
+      {moveOpen && browserCount > 0 && (
+        <MoveQuestsModal
+          quests={browser.quests}
+          email={user?.email ?? ""}
+          onMove={moveIn}
+          onClose={() => setMoveOpen(false)}
+        />
+      )}
     </div>
   );
 }
