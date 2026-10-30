@@ -80,17 +80,7 @@ describe("applyReorder", () => {
     expect(byId(next).e.position).toBe(1);
   });
 
-  it("stamps updatedAt only on changed quests when given a timestamp", () => {
-    const now = "2026-09-08T10:00:00.000Z";
-    const next = byId(
-      applyReorder(board, [{ status: "backlog", ids: ["b", "a", "c"] }], now),
-    );
-    expect(next.a.updatedAt).toBe(now);
-    expect(next.b.updatedAt).toBe(now);
-    expect(next.c.updatedAt).toBe(board[2].updatedAt);
-  });
-
-  it("does not touch updatedAt without a timestamp", () => {
+  it("never touches updatedAt, since it only previews a drag", () => {
     const next = byId(
       applyReorder(board, [{ status: "backlog", ids: ["b", "a", "c"] }]),
     );

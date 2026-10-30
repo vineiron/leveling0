@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db/client";
 import { quests } from "@/db/schema";
@@ -34,7 +34,10 @@ export async function PATCH(request: Request, ctx: RouteContext) {
 
   const patch: Record<string, unknown> = { updatedAt: new Date() };
   if (data.title !== undefined) patch.title = data.title;
-  if (data.status !== undefined) patch.status = data.status;
+  if (data.status !== undefined) {
+    patch.status = data.status;
+    patch.position = sql`CASE WHEN ${quests.status} = ${data.status}::quest_status THEN ${quests.position} ELSE (SELECT COALESCE(MAX(q.position), -1) + 1 FROM quests q WHERE q.user_id = ${userId}::uuid AND q.status = ${data.status}::quest_status) END`;
+  }
   if (data.position !== undefined) patch.position = data.position;
   if (data.dueAt !== undefined) patch.dueAt = data.dueAt;
   if (data.tags !== undefined) patch.tags = data.tags;

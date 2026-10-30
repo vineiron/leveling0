@@ -2,8 +2,6 @@ import { z } from "zod";
 import { IMPORT_MAX_QUESTS, QUEST_LIMITS } from "./quests/limits";
 import { QUEST_STATUSES, type QuestStatus } from "./quests/types";
 
-const REORDER_MAX_IDS_PER_GROUP = 1_000;
-
 const questStatusSchema = z.enum(
   QUEST_STATUSES as [QuestStatus, ...QuestStatus[]],
 );
@@ -64,33 +62,13 @@ export const updateQuestSchema = z
   })
   .strict();
 
-export const reorderSchema = z
+export const moveQuestSchema = z
   .object({
-    groups: z
-      .array(
-        z
-          .object({
-            status: questStatusSchema,
-            ids: z.array(z.string().uuid()).max(REORDER_MAX_IDS_PER_GROUP),
-          })
-          .strict(),
-      )
-      .max(QUEST_STATUSES.length),
+    status: questStatusSchema,
+    afterId: questIdSchema.nullable(),
+    beforeId: questIdSchema.nullable(),
   })
-  .strict()
-  .refine(
-    (data) => {
-      const seen = new Set<string>();
-      for (const g of data.groups) {
-        for (const id of g.ids) {
-          if (seen.has(id)) return false;
-          seen.add(id);
-        }
-      }
-      return true;
-    },
-    { message: "Duplicate quest IDs across groups" },
-  );
+  .strict();
 
 const importedAt = isoDateString.transform((s) => new Date(s)).optional();
 

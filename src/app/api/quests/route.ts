@@ -16,7 +16,7 @@ export async function GET() {
     .select()
     .from(quests)
     .where(eq(quests.userId, userId))
-    .orderBy(asc(quests.status), asc(quests.position));
+    .orderBy(asc(quests.status), asc(quests.position), asc(quests.id));
   return NextResponse.json({ quests: rows.map(dbQuestToQuest) });
 }
 
