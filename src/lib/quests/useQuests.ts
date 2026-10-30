@@ -4,7 +4,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth/AuthProvider";
 import { applyReorder } from "./reorder";
 import { apiStore, localStore, type QuestStore } from "./storage";
-import type { ImportResult, Quest, QuestDraft, ReorderPayload } from "./types";
+import type {
+  ImportResult,
+  Quest,
+  QuestDraft,
+  QuestMove,
+  ReorderPayload,
+} from "./types";
 
 export type UseQuests = {
   quests: Quest[];
@@ -15,7 +21,7 @@ export type UseQuests = {
   update: (id: string, patch: Partial<QuestDraft>) => Promise<void>;
   remove: (id: string) => Promise<void>;
   previewReorder: (groups: ReorderPayload[]) => void;
-  commitReorder: (groups: ReorderPayload[]) => Promise<void>;
+  commitMove: (id: string, to: QuestMove) => Promise<void>;
   importQuests: (quests: Quest[]) => Promise<ImportResult>;
   mode: "local" | "remote";
 };
@@ -78,10 +84,10 @@ export function useQuests(): UseQuests {
     setItems((prev) => applyReorder(prev, groups));
   }, []);
 
-  const commitReorder = useCallback(
-    async (groups: ReorderPayload[]) => {
+  const commitMove = useCallback(
+    async (id: string, to: QuestMove) => {
       try {
-        await store.reorder(groups);
+        await store.move(id, to);
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e));
         await refresh();
@@ -109,7 +115,7 @@ export function useQuests(): UseQuests {
       update,
       remove,
       previewReorder,
-      commitReorder,
+      commitMove,
       importQuests,
       mode,
     }),
@@ -123,7 +129,7 @@ export function useQuests(): UseQuests {
       update,
       remove,
       previewReorder,
-      commitReorder,
+      commitMove,
       importQuests,
       mode,
     ],

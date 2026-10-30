@@ -35,6 +35,12 @@ export type ReorderPayload = {
   ids: string[];
 };
 
+export type QuestMove = {
+  status: QuestStatus;
+  afterId: string | null;
+  beforeId: string | null;
+};
+
 export type ImportResult = {
   added: { from: string; quest: Quest }[];
   alreadyHere: string[];

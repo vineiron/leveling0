@@ -61,7 +61,7 @@ export function Board() {
     update,
     remove,
     previewReorder,
-    commitReorder,
+    commitMove,
     importQuests,
     mode,
   } = useQuests();
@@ -221,8 +221,8 @@ export function Board() {
 
   function onDragEnd(e: DragEndEvent) {
     const { active, over } = e;
+    const activeId = String(active.id);
     if (over) {
-      const activeId = String(active.id);
       const overId = String(over.id);
       const fromStatus = findContainer(activeId);
       const toStatus = findContainer(overId);
@@ -238,15 +238,18 @@ export function Board() {
       }
     }
 
-    if (pendingGroupsRef.current.size > 0) {
-      const groups = [...pendingGroupsRef.current.entries()].map(
-        ([status, ids]) => ({
-          status,
-          ids,
-        }),
-      );
-      pendingGroupsRef.current.clear();
-      void commitReorder(groups);
+    const landed = [...pendingGroupsRef.current].find(([, ids]) =>
+      ids.includes(activeId),
+    );
+    pendingGroupsRef.current.clear();
+    if (landed) {
+      const [status, ids] = landed;
+      const at = ids.indexOf(activeId);
+      void commitMove(activeId, {
+        status,
+        afterId: ids[at - 1] ?? null,
+        beforeId: ids[at + 1] ?? null,
+      });
     }
   }
 

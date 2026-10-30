@@ -3,7 +3,7 @@ import { IMPORT_MAX_QUESTS } from "./quests/limits";
 import {
   createQuestSchema,
   importQuestsSchema,
-  reorderSchema,
+  moveQuestSchema,
   updateQuestSchema,
 } from "./validation";
 
@@ -51,32 +51,42 @@ describe("updateQuestSchema", () => {
   });
 });
 
-describe("reorderSchema", () => {
-  it("accepts unique ids across groups", () => {
-    const parsed = reorderSchema.safeParse({
-      groups: [
-        {
-          status: "backlog",
-          ids: ["11111111-1111-4111-8111-111111111111"],
-        },
-        {
-          status: "done",
-          ids: ["22222222-2222-4222-8222-222222222222"],
-        },
-      ],
-    });
-    expect(parsed.success).toBe(true);
+describe("moveQuestSchema", () => {
+  const id = "11111111-1111-4111-8111-111111111111";
+
+  it("accepts a column and two neighbours, either of which may be empty", () => {
+    expect(
+      moveQuestSchema.safeParse({ status: "done", afterId: id, beforeId: null })
+        .success,
+    ).toBe(true);
+    expect(
+      moveQuestSchema.safeParse({
+        status: "backlog",
+        afterId: null,
+        beforeId: null,
+      }).success,
+    ).toBe(true);
   });
 
-  it("rejects duplicate ids across groups", () => {
-    const id = "11111111-1111-4111-8111-111111111111";
-    const parsed = reorderSchema.safeParse({
-      groups: [
-        { status: "backlog", ids: [id] },
-        { status: "done", ids: [id] },
-      ],
-    });
-    expect(parsed.success).toBe(false);
+  it("rejects bad ids, missing neighbours and unknown fields", () => {
+    expect(
+      moveQuestSchema.safeParse({
+        status: "done",
+        afterId: "nope",
+        beforeId: null,
+      }).success,
+    ).toBe(false);
+    expect(
+      moveQuestSchema.safeParse({ status: "done", afterId: null }).success,
+    ).toBe(false);
+    expect(
+      moveQuestSchema.safeParse({
+        status: "done",
+        afterId: null,
+        beforeId: null,
+        position: 3,
+      }).success,
+    ).toBe(false);
   });
 });
 

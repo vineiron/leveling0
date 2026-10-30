@@ -118,21 +118,60 @@ describe("localStore", () => {
     expect(ids).toEqual([keep.id]);
   });
 
-  it("persists reorders across columns", async () => {
+  it("moves a quest within a column without marking it updated", async () => {
     const a = await localStore.create(draft);
     const b = await localStore.create(draft);
+    const c = await localStore.create(draft);
 
-    await localStore.reorder([
-      { status: "backlog", ids: [b.id] },
-      { status: "in_progress", ids: [a.id] },
-    ]);
+    await localStore.move(c.id, {
+      status: "backlog",
+      afterId: null,
+      beforeId: a.id,
+    });
+
+    const list = await localStore.list();
+    expect(list.map((q) => q.id)).toEqual([c.id, a.id, b.id]);
+    expect(list[0].updatedAt).toBe(c.updatedAt);
+  });
+
+  it("moves a quest across columns and marks only it updated", async () => {
+    const a = await localStore.create(draft);
+    const b = await localStore.create(draft);
+    const x = await localStore.create({ ...draft, status: "done" });
+
+    await localStore.move(a.id, {
+      status: "done",
+      afterId: x.id,
+      beforeId: null,
+    });
 
     const list = await localStore.list();
     expect(list.map((q) => [q.id, q.status, q.position])).toEqual([
-      [b.id, "backlog", 0],
-      [a.id, "in_progress", 0],
+      [b.id, "backlog", 1],
+      [x.id, "done", 0],
+      [a.id, "done", 1],
     ]);
-    expect(JSON.parse(storage.raw() ?? "[]")).toHaveLength(2);
+    expect(list[2].updatedAt >= a.updatedAt).toBe(true);
+    expect(list[0].updatedAt).toBe(b.updatedAt);
+    await expect(
+      localStore.move("missing", {
+        status: "done",
+        afterId: null,
+        beforeId: null,
+      }),
+    ).rejects.toThrow("Not found");
+  });
+
+  it("puts a quest at the bottom of its new column when edited into it", async () => {
+    const a = await localStore.create(draft);
+    await localStore.create({ ...draft, status: "done" });
+    await localStore.create({ ...draft, status: "done" });
+
+    const moved = await localStore.update(a.id, { status: "done" });
+    expect(moved.position).toBe(2);
+
+    const same = await localStore.update(a.id, { status: "done", title: "x" });
+    expect(same.position).toBe(2);
   });
 
   it("is a no-op without a window", async () => {
@@ -266,7 +305,7 @@ describe("apiStore", () => {
     expect(JSON.parse(String(init?.body))).toEqual(draft);
   });
 
-  it("patches, deletes and reorders against the right routes", async () => {
+  it("patches, deletes and moves against the right routes", async () => {
     respond(200, { quest: { id: "q1", title: "Renamed" } });
     await apiStore.update("q1", { title: "Renamed" });
     expect(lastRequest().url).toBe("/api/quests/q1");
@@ -278,10 +317,11 @@ describe("apiStore", () => {
     expect(lastRequest().init?.method).toBe("DELETE");
 
     respond(200, { ok: true });
-    const groups = [{ status: "done" as const, ids: ["q1"] }];
-    await apiStore.reorder(groups);
-    expect(lastRequest().url).toBe("/api/quests/reorder");
-    expect(JSON.parse(String(lastRequest().init?.body))).toEqual({ groups });
+    const to = { status: "done" as const, afterId: "q2", beforeId: null };
+    await apiStore.move("q1", to);
+    expect(lastRequest().url).toBe("/api/quests/q1/move");
+    expect(lastRequest().init?.method).toBe("POST");
+    expect(JSON.parse(String(lastRequest().init?.body))).toEqual(to);
   });
 
   it("imports quests without their positions", async () => {

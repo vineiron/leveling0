@@ -1,7 +1,7 @@
 import { ApiError, toFriendlyMessages } from "./errors";
 import { fileQuest } from "./files";
-import { applyReorder } from "./reorder";
-import type { ImportResult, Quest, QuestDraft, ReorderPayload } from "./types";
+import { planMove } from "./move";
+import type { ImportResult, Quest, QuestDraft, QuestMove } from "./types";
 
 const LS_KEY = "leveling0:items:v1";
 const ASK_KEY = "leveling0:ask-to-move";
@@ -60,7 +60,7 @@ export type QuestStore = {
     patch: Partial<QuestDraft> & { position?: number },
   ): Promise<Quest>;
   remove(id: string): Promise<void>;
-  reorder(groups: ReorderPayload[]): Promise<void>;
+  move(id: string, to: QuestMove): Promise<void>;
   import(quests: Quest[]): Promise<ImportResult>;
 };
 
@@ -69,7 +69,9 @@ export const localStore: QuestStore = {
     const quests = readLocal();
     return [...quests].sort((a, b) => {
       if (a.status !== b.status) return a.status.localeCompare(b.status);
-      return a.position - b.position;
+      return (
+        a.position - b.position || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0)
+      );
     });
   },
   async create(draft) {
@@ -97,9 +99,20 @@ export const localStore: QuestStore = {
     const quests = readLocal();
     const idx = quests.findIndex((i) => i.id === id);
     if (idx === -1) throw new Error("Not found");
+    const current = quests[idx];
+    const changesColumn =
+      patch.status !== undefined && patch.status !== current.status;
     const next: Quest = {
-      ...quests[idx],
+      ...current,
       ...patch,
+      ...(changesColumn && patch.position === undefined
+        ? {
+            position:
+              quests
+                .filter((q) => q.status === patch.status)
+                .reduce((m, q) => Math.max(m, q.position), -1) + 1,
+          }
+        : {}),
       updatedAt: new Date().toISOString(),
     };
     quests[idx] = next;
@@ -110,8 +123,31 @@ export const localStore: QuestStore = {
     const quests = readLocal().filter((i) => i.id !== id);
     writeLocal(quests);
   },
-  async reorder(groups) {
-    writeLocal(applyReorder(readLocal(), groups, new Date().toISOString()));
+  async move(id, to) {
+    const quests = readLocal();
+    if (!quests.some((q) => q.id === id)) throw new Error("Not found");
+    const placed = new Map(
+      planMove(
+        quests.filter((q) => q.status === to.status),
+        id,
+        to.afterId,
+        to.beforeId,
+      ).map((p) => [p.id, p.position]),
+    );
+    const now = new Date().toISOString();
+    writeLocal(
+      quests.map((q) => {
+        const position = placed.get(q.id);
+        if (position === undefined) return q;
+        if (q.id !== id) return { ...q, position };
+        return {
+          ...q,
+          status: to.status,
+          position,
+          ...(q.status !== to.status ? { updatedAt: now } : {}),
+        };
+      }),
+    );
   },
   async import(incoming) {
     const quests = readLocal();
@@ -185,12 +221,12 @@ export const apiStore: QuestStore = {
   async remove(id) {
     await jsonOrThrow(await fetch(`/api/quests/${id}`, { method: "DELETE" }));
   },
-  async reorder(groups) {
+  async move(id, to) {
     await jsonOrThrow(
-      await fetch("/api/quests/reorder", {
+      await fetch(`/api/quests/${id}/move`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ groups }),
+        body: JSON.stringify(to),
       }),
     );
   },
