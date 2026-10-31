@@ -11,6 +11,9 @@ export const QUEST_LIMITS = {
 
 export const IMPORT_MAX_QUESTS = 500;
 
+export const BOARD_MAX_BYTES = 4_000_000;
+export const QUEST_BASE_BYTES = 300;
+
 type Limited = Pick<Quest, "title" | "detail" | "note" | "tags">;
 
 function over(

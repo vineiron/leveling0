@@ -1,5 +1,6 @@
 import { and, eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { BOARD_FULL, boardFullResponse, withinBudget } from "@/db/budget";
 import { db } from "@/db/client";
 import { quests } from "@/db/schema";
 import { dbQuestToQuest } from "@/lib/quests/serialize";
@@ -44,11 +45,15 @@ export async function PATCH(request: Request, ctx: RouteContext) {
   if (data.detail !== undefined) patch.detail = data.detail;
   if (data.note !== undefined) patch.note = data.note;
 
-  const [updated] = await db
-    .update(quests)
-    .set(patch)
-    .where(and(eq(quests.id, id.data), eq(quests.userId, userId)))
-    .returning();
+  const updated = await withinBudget(userId, async (tx) => {
+    const [row] = await tx
+      .update(quests)
+      .set(patch)
+      .where(and(eq(quests.id, id.data), eq(quests.userId, userId)))
+      .returning();
+    return row;
+  });
+  if (updated === BOARD_FULL) return boardFullResponse();
 
   if (!updated) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });

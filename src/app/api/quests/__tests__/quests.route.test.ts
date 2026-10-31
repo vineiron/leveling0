@@ -14,7 +14,9 @@ const {
   updateSet,
   deleteReturning,
   dbExecute,
+  selectBytes,
 } = vi.hoisted(() => {
+  const selectBytes = vi.fn().mockResolvedValue([{ bytes: 0 }]);
   const selectWhere = vi.fn();
   const selectHolders = vi.fn();
   const selectOrderBy = vi.fn();
@@ -38,6 +40,7 @@ const {
     updateReturning,
     deleteReturning,
     dbExecute,
+    selectBytes,
   };
 });
 
@@ -45,9 +48,16 @@ vi.mock("@/lib/supabase/server", () => ({
   getCurrentUserId,
 }));
 
-vi.mock("@/db/client", () => ({
-  db: {
+vi.mock("@/db/client", () => {
+  const db = {
     select: vi.fn((arg?: unknown) => {
+      if (arg && typeof arg === "object" && "bytes" in (arg as object)) {
+        return {
+          from: () => ({
+            where: selectBytes,
+          }),
+        };
+      }
       if (arg && typeof arg === "object" && "maxPos" in (arg as object)) {
         return {
           from: () => ({
@@ -102,13 +112,17 @@ vi.mock("@/db/client", () => ({
       }),
     })),
     execute: dbExecute,
-  },
-}));
+    transaction: (run: (tx: unknown) => Promise<unknown>): Promise<unknown> =>
+      run(db),
+  };
+  return { db };
+});
 
 import { POST as movePOST } from "@/app/api/quests/[id]/move/route";
 import { DELETE, PATCH } from "@/app/api/quests/[id]/route";
 import { POST as importPOST } from "@/app/api/quests/import/route";
 import { GET, POST } from "@/app/api/quests/route";
+import { BOARD_MAX_BYTES } from "@/lib/quests/limits";
 
 const OWNER_ID = "11111111-1111-4111-8111-111111111111";
 const QUEST_ID = "22222222-2222-4222-8222-222222222222";
@@ -537,5 +551,108 @@ describe("POST /api/quests/import", () => {
       alreadyHere: [MINE],
     });
     expect(insertValues).not.toHaveBeenCalled();
+  });
+});
+
+describe("board size limit", () => {
+  const near = BOARD_MAX_BYTES - 100;
+  const over = BOARD_MAX_BYTES + 100;
+  const now = new Date("2026-07-10T00:00:00.000Z");
+  const row = {
+    id: QUEST_ID,
+    userId: OWNER_ID,
+    status: "backlog",
+    position: 0,
+    title: "Quest",
+    dueAt: null,
+    tags: [],
+    detail: "Detail",
+    note: "",
+    createdAt: now,
+    updatedAt: now,
+  };
+  const create = () =>
+    POST(
+      jsonRequest("http://localhost:3000/api/quests", "POST", {
+        title: "Quest",
+        status: "backlog",
+        detail: "Detail",
+      }),
+    );
+  const edit = () =>
+    PATCH(
+      jsonRequest(`http://localhost:3000/api/quests/${QUEST_ID}`, "PATCH", {
+        detail: "Changed detail",
+      }),
+      { params: Promise.resolve({ id: QUEST_ID }) },
+    );
+  const measures = (before: number, after: number) =>
+    selectBytes
+      .mockResolvedValueOnce([{ bytes: before }])
+      .mockResolvedValueOnce([{ bytes: after }]);
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    getCurrentUserId.mockResolvedValue(OWNER_ID);
+    selectWhere.mockResolvedValue([{ maxPos: 0 }]);
+    selectHolders.mockResolvedValue([]);
+    insertReturning.mockResolvedValue([row]);
+    updateReturning.mockResolvedValue([row]);
+  });
+
+  it("locks the user's board before measuring it", async () => {
+    await create();
+    expect(dbExecute).toHaveBeenCalledOnce();
+    const { sql, params } = new PgDialect().sqlToQuery(
+      dbExecute.mock.calls[0][0] as SQL,
+    );
+    expect(sql).toContain("pg_advisory_xact_lock");
+    expect(params).toEqual([OWNER_ID]);
+    expect(dbExecute.mock.invocationCallOrder[0]).toBeLessThan(
+      selectBytes.mock.invocationCallOrder[0],
+    );
+  });
+
+  it("creates a quest that still fits", async () => {
+    measures(near - 1_000, near);
+    const response = await create();
+    expect(response.status).toBe(201);
+  });
+
+  it("rejects a quest that takes the board past the limit", async () => {
+    measures(near, over);
+    const response = await create();
+    expect(response.status).toBe(409);
+    const body = await response.json();
+    expect(body.error).toContain(`${BOARD_MAX_BYTES / 1_000_000} MB`);
+  });
+
+  it("rejects an import that doesn't fit", async () => {
+    measures(near, over);
+    const response = await importPOST(
+      jsonRequest("http://localhost:3000/api/quests/import", "POST", {
+        quests: [
+          {
+            id: "55555555-5555-4555-8555-555555555555",
+            title: "Quest",
+            status: "backlog",
+            detail: "Detail",
+          },
+        ],
+      }),
+    );
+    expect(response.status).toBe(409);
+  });
+
+  it("rejects an edit that grows the board past the limit", async () => {
+    measures(near, over);
+    const response = await edit();
+    expect(response.status).toBe(409);
+  });
+
+  it("still allows an edit that shrinks a board already over the limit", async () => {
+    measures(over + 500, over);
+    const response = await edit();
+    expect(response.status).toBe(200);
   });
 });
