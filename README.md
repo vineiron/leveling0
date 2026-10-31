@@ -5,9 +5,9 @@ turning into a pile.
 
 leveling0 is intentionally simple: three columns, tags, due dates, markdown
 details, private notes, search, command-palette actions, drag-and-drop
-reordering, and optional Google sign-in for syncing across devices. Anonymous
-users can use the board locally in the browser; signed-in users sync quests to
-Postgres.
+reordering, export and import to a file, and optional Google sign-in for syncing
+across devices. Anonymous users can use the board locally in the browser;
+signed-in users sync quests to Postgres.
 
 Try it at [leveling0.vercel.app](https://leveling0.vercel.app). No sign-in is
 needed; the board runs in your browser until you choose to sync.
@@ -53,16 +53,6 @@ as the project matures.
 - **dnd-kit** for board reordering
 - **Zod** for API request validation
 - **react-markdown** and `remark-gfm` for quest details and notes
-
-## Documentation
-
-- `docs/ARCHITECTURE.md` - app boundaries, route layout, data flow, and key
-  files.
-- `docs/DATABASE.md` - database schema, ownership model, migrations, and
-  validation limits.
-- `docs/DEPLOYMENT.md` - production environment, Supabase OAuth, and migration
-  setup.
-- `docs/SECURITY_MODEL.md` - trust boundaries, data visibility, and known gaps.
 
 ## 1. Environment
 
@@ -144,8 +134,8 @@ pnpm exec vitest run
   so Supabase RLS is not the runtime authorization boundary. RLS is still
   enabled on `quests` with no policies, and REST grants are revoked, to keep
   the table out of Supabase's auto-generated REST API.
-- Middleware refreshes the Supabase session cookie; it is not the only security
-  boundary.
+- The proxy (`src/proxy.ts`) refreshes the Supabase session cookie; it is not
+  the only security boundary.
 - State-changing API routes reject cross-origin browser requests with an Origin
   versus Host check.
 
@@ -158,13 +148,10 @@ pnpm exec vitest run
 - Local anonymous quests stay in the user's browser and are not uploaded until a
   signed-in remote flow explicitly creates remote quests.
 - Analytics and error tracking (PostHog) are optional, proxied through the
-  app's own origin, and never see quest content or user identity. Details in
-  `docs/SECURITY_MODEL.md`.
-- See `docs/SECURITY_MODEL.md` for trust boundaries and known gaps.
+  app's own origin, and never see quest content or user identity.
 - See `SECURITY.md` for responsible vulnerability reporting.
 
 ## Known Limitations
 
 - Dedicated rate limiting is not implemented yet.
 - Anonymous local quests are browser/device-local.
-- There is no built-in data export/import flow yet.
