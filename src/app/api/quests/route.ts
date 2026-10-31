@@ -1,5 +1,6 @@
 import { asc, eq, max } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { BOARD_FULL, boardFullResponse, withinBudget } from "@/db/budget";
 import { db } from "@/db/client";
 import { quests } from "@/db/schema";
 import { dbQuestToQuest } from "@/lib/quests/serialize";
@@ -39,24 +40,28 @@ export async function POST(request: Request) {
   }
   const data = parsed.data;
 
-  const [{ maxPos }] = await db
-    .select({ maxPos: max(quests.position) })
-    .from(quests)
-    .where(eq(quests.userId, userId));
+  const created = await withinBudget(userId, async (tx) => {
+    const [{ maxPos }] = await tx
+      .select({ maxPos: max(quests.position) })
+      .from(quests)
+      .where(eq(quests.userId, userId));
 
-  const [created] = await db
-    .insert(quests)
-    .values({
-      userId,
-      status: data.status,
-      position: (maxPos ?? -1) + 1,
-      title: data.title,
-      dueAt: data.dueAt,
-      tags: data.tags,
-      detail: data.detail,
-      note: data.note,
-    })
-    .returning();
+    const [row] = await tx
+      .insert(quests)
+      .values({
+        userId,
+        status: data.status,
+        position: (maxPos ?? -1) + 1,
+        title: data.title,
+        dueAt: data.dueAt,
+        tags: data.tags,
+        detail: data.detail,
+        note: data.note,
+      })
+      .returning();
+    return row;
+  });
+  if (created === BOARD_FULL) return boardFullResponse();
 
   return NextResponse.json({ quest: dbQuestToQuest(created) }, { status: 201 });
 }
