@@ -54,16 +54,6 @@ as the project matures.
 - **Zod** for API request validation
 - **react-markdown** and `remark-gfm` for quest details and notes
 
-## Documentation
-
-- `docs/ARCHITECTURE.md` - app boundaries, route layout, data flow, and key
-  files.
-- `docs/DATABASE.md` - database schema, ownership model, migrations, and
-  validation limits.
-- `docs/DEPLOYMENT.md` - production environment, Supabase OAuth, and migration
-  setup.
-- `docs/SECURITY_MODEL.md` - trust boundaries, data visibility, and known gaps.
-
 ## 1. Environment
 
 Copy the example environment file, then replace the placeholders with your own
@@ -158,9 +148,7 @@ pnpm exec vitest run
 - Local anonymous quests stay in the user's browser and are not uploaded until a
   signed-in remote flow explicitly creates remote quests.
 - Analytics and error tracking (PostHog) are optional, proxied through the
-  app's own origin, and never see quest content or user identity. Details in
-  `docs/SECURITY_MODEL.md`.
-- See `docs/SECURITY_MODEL.md` for trust boundaries and known gaps.
+  app's own origin, and never see quest content or user identity.
 - See `SECURITY.md` for responsible vulnerability reporting.
 
 ## Known Limitations

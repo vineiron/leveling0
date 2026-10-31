@@ -46,5 +46,3 @@ Out of scope:
 - Anonymous quests are stored in browser `localStorage`, not on the server.
 - Signed-in quest endpoints should return only quests owned by the authenticated
   user.
-
-See `docs/SECURITY_MODEL.md` for the full security model.
