@@ -1,7 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ApiError, describeIssue } from "@/lib/quests/errors";
+import {
+  ApiError,
+  describeIssue,
+  errorMessage,
+  MESSAGES,
+} from "@/lib/quests/errors";
 import { limitIssues, QUEST_LIMITS } from "@/lib/quests/limits";
 import type { Quest, QuestDraft, QuestStatus } from "@/lib/quests/types";
 import { QUEST_STATUSES, STATUS_LABELS } from "@/lib/quests/types";
@@ -87,6 +92,7 @@ export function QuestModal({
   const [errors, setErrors] = useState<string[]>([]);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [restoredAt, setRestoredAt] = useState<number | null>(null);
+  const [draftFull, setDraftFull] = useState(false);
   const [focusedField, setFocusedField] = useState<"note" | "detail" | null>(
     null,
   );
@@ -163,6 +169,7 @@ export function QuestModal({
 
     skipNextSaveRef.current = true;
     setErrors([]);
+    setDraftFull(false);
     setConfirmDeleteOpen(false);
     setFocusedField(null);
   }, [open, draftKey, baseValues, applyValues]);
@@ -178,6 +185,7 @@ export function QuestModal({
     if (!dirty) {
       clearDraft(draftKey);
       setRestoredAt(null);
+      setDraftFull(false);
       return;
     }
     const t = setTimeout(() => {
@@ -186,7 +194,12 @@ export function QuestModal({
           draftKey,
           JSON.stringify({ ...current, savedAt: Date.now() }),
         );
-      } catch {}
+        setDraftFull(false);
+      } catch (e) {
+        if (e instanceof DOMException && e.name === "QuotaExceededError") {
+          setDraftFull(true);
+        }
+      }
     }, 400);
     return () => clearTimeout(t);
   }, [open, draftKey, baseValues, title, status, dueAt, tags, detail, note]);
@@ -232,11 +245,7 @@ export function QuestModal({
       setRestoredAt(null);
       if (!initial) onClose();
     } catch (err) {
-      setErrors(
-        err instanceof ApiError
-          ? err.messages
-          : [err instanceof Error ? err.message : String(err)],
-      );
+      setErrors(err instanceof ApiError ? err.messages : [errorMessage(err)]);
     } finally {
       setBusy(false);
     }
@@ -252,11 +261,7 @@ export function QuestModal({
       setConfirmDeleteOpen(false);
       onClose();
     } catch (err) {
-      setErrors(
-        err instanceof ApiError
-          ? err.messages
-          : [err instanceof Error ? err.message : String(err)],
-      );
+      setErrors(err instanceof ApiError ? err.messages : [errorMessage(err)]);
     } finally {
       setBusy(false);
     }
@@ -283,7 +288,27 @@ export function QuestModal({
       hideClose={Boolean(focusedField)}
       footer={
         focusedField ? undefined : (
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {draftFull && (
+              <p
+                role="status"
+                className="flex basis-full items-center gap-1.5 text-xs text-warning-text sm:order-1 sm:min-w-0 sm:flex-1 sm:basis-auto"
+              >
+                <svg
+                  className="h-4 w-4 shrink-0"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M8.49 2.87a1.75 1.75 0 013.02 0l6.28 10.88A1.75 1.75 0 0116.28 16.4H3.72a1.75 1.75 0 01-1.51-2.65L8.49 2.87zM10 6.5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 6.5zm0 8a1 1 0 100-2 1 1 0 000 2z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                {MESSAGES.draftNotSaved}
+              </p>
+            )}
             <div className="flex gap-2">
               {onDelete && (
                 <button
@@ -306,7 +331,7 @@ export function QuestModal({
                 </button>
               )}
             </div>
-            <div className="flex gap-2">
+            <div className="ml-auto flex gap-2 sm:order-2">
               <button type="button" onClick={onClose} className={btn.secondary}>
                 Cancel
               </button>

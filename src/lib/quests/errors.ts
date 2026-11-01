@@ -7,6 +7,24 @@ export type ZodIssue = {
   minimum?: number;
 };
 
+const FREE_UP_SPACE = "Delete or shorten some quests to free up space.";
+const TRY_ONLINE = "Check you're online and try again.";
+
+export const MESSAGES = {
+  boardFull: `Your board is full. ${FREE_UP_SPACE}`,
+  browserFull: `This browser is full. ${FREE_UP_SPACE}`,
+  draftNotSaved: "Draft not saved. This browser is full.",
+  tooBig: "That's too much to send at once. Pick fewer quests and try again.",
+  tooMany: "Too many changes at once. Wait a minute and try again.",
+  offline: `The connection dropped. ${TRY_ONLINE}`,
+  moveFailed: `Couldn't move that card, so it went back. ${TRY_ONLINE}`,
+} as const;
+
+export function errorMessage(e: unknown): string {
+  if (e instanceof TypeError) return MESSAGES.offline;
+  return e instanceof Error ? e.message : String(e);
+}
+
 const FIELD_LABELS: Record<string, string> = {
   title: "Title",
   status: "Status",
@@ -38,15 +56,16 @@ function labelFor(path: (string | number)[] | undefined): string {
 
 export function describeIssue(issue: ZodIssue): string {
   const where = labelFor(issue.path);
+  const max = issue.maximum?.toLocaleString("en-US");
   switch (issue.code) {
     case "too_big":
       if (issue.origin === "array") {
-        return `Too many ${where.toLowerCase()} (max ${issue.maximum}).`;
+        return `Too many ${where.toLowerCase()} (max ${max}).`;
       }
       if (issue.origin === "number") {
-        return `${where} is too large (max ${issue.maximum}).`;
+        return `${where} is too large (max ${max}).`;
       }
-      return `${where} is too long (max ${issue.maximum} characters).`;
+      return `${where} is too long (max ${max} characters).`;
     case "too_small":
       if (issue.origin === "array") {
         return `Add at least ${issue.minimum} ${where.toLowerCase()}.`;

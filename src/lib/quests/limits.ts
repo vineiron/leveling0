@@ -13,7 +13,6 @@ export const IMPORT_MAX_QUESTS = 500;
 
 export const BOARD_MAX_BYTES = 4_000_000;
 export const QUEST_BASE_BYTES = 300;
-export const MAKE_ROOM = "Delete or shorten some quests to make room.";
 
 type Limited = Pick<Quest, "title" | "detail" | "note" | "tags">;
 

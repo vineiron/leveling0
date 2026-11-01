@@ -1,9 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ApiError } from "./errors";
+import { ApiError, MESSAGES } from "./errors";
 import {
   apiStore,
   askToMoveAfterSignIn,
-  BROWSER_FULL_MESSAGE,
   forgetLocal,
   localStore,
   readLocal,
@@ -190,11 +189,11 @@ describe("localStore", () => {
       );
     };
     await expect(localStore.create(draft)).rejects.toThrow(
-      BROWSER_FULL_MESSAGE,
+      MESSAGES.browserFull,
     );
     await expect(
       localStore.import([{ ...kept, id: "another" }]),
-    ).rejects.toThrow(BROWSER_FULL_MESSAGE);
+    ).rejects.toThrow(MESSAGES.browserFull);
     expect(await localStore.list()).toEqual([kept]);
   });
 
@@ -403,6 +402,29 @@ describe("apiStore", () => {
     await expect(apiStore.list()).rejects.toMatchObject({
       status: 502,
       messages: ["Request failed (502)."],
+    });
+  });
+
+  it("says too much was sent at once instead of Vercel's 413 text", async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response(
+        "Request Entity Too Large\n\nFUNCTION_PAYLOAD_TOO_LARGE\n\nsin1::abc",
+        { status: 413 },
+      ),
+    );
+    await expect(apiStore.import([])).rejects.toMatchObject({
+      status: 413,
+      messages: [MESSAGES.tooBig],
+    });
+  });
+
+  it("says to slow down when rate limited", async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response("Too Many Requests", { status: 429 }),
+    );
+    await expect(apiStore.list()).rejects.toMatchObject({
+      status: 429,
+      messages: [MESSAGES.tooMany],
     });
   });
 });

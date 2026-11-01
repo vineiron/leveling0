@@ -1,14 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ApiError } from "./errors";
+import { errorMessage } from "./errors";
 import type { Quest } from "./types";
-
-function reason(e: unknown): string {
-  if (e instanceof ApiError) return e.message;
-  if (e instanceof TypeError) return "The connection dropped.";
-  return e instanceof Error ? e.message : String(e);
-}
 
 export function useQuestTransfer(
   onRun: (picked: Quest[]) => Promise<void>,
@@ -31,7 +25,7 @@ export function useQuestTransfer(
       await onRun(picked);
       onDone();
     } catch (e) {
-      setFailure(reason(e));
+      setFailure(errorMessage(e));
       setWorking(false);
     }
   }

@@ -169,6 +169,7 @@ export function Board() {
   const isEmptyBoard = !loading && quests.length === 0;
 
   const pendingGroupsRef = useRef<Map<QuestStatus, string[]>>(new Map());
+  const beforeDragRef = useRef<Quest[]>([]);
 
   function isColumnId(id: string) {
     return id.startsWith("column:");
@@ -187,6 +188,7 @@ export function Board() {
 
   function onDragStart(_e: DragStartEvent) {
     pendingGroupsRef.current.clear();
+    beforeDragRef.current = quests;
   }
 
   function onDragOver(e: DragOverEvent) {
@@ -245,11 +247,15 @@ export function Board() {
     if (landed) {
       const [status, ids] = landed;
       const at = ids.indexOf(activeId);
-      void commitMove(activeId, {
-        status,
-        afterId: ids[at - 1] ?? null,
-        beforeId: ids[at + 1] ?? null,
-      });
+      void commitMove(
+        activeId,
+        {
+          status,
+          afterId: ids[at - 1] ?? null,
+          beforeId: ids[at + 1] ?? null,
+        },
+        beforeDragRef.current,
+      );
     }
   }
 
