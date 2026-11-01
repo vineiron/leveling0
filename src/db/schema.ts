@@ -7,6 +7,7 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
+import { authUsers } from "drizzle-orm/supabase";
 
 export const questStatus = pgEnum("quest_status", [
   "backlog",
@@ -18,7 +19,9 @@ export const quests = pgTable(
   "quests",
   {
     id: uuid().primaryKey().defaultRandom(),
-    userId: uuid().notNull(),
+    userId: uuid()
+      .notNull()
+      .references(() => authUsers.id, { onDelete: "cascade" }),
     status: questStatus().notNull().default("backlog"),
     position: integer().notNull().default(0),
     title: text().notNull(),

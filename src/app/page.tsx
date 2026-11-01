@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { BoardPreview } from "@/components/BoardPreview";
-import { BrandMark } from "@/components/BrandMark";
-import { LandingAuthAction } from "@/components/LandingAuthAction";
-import { ThemeToggle } from "@/components/ThemeToggle";
+import { SiteFooter, SiteHeader } from "@/components/SiteChrome";
 import { btn } from "@/components/ui";
 
 function ArrowIcon() {
@@ -25,16 +23,7 @@ function ArrowIcon() {
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col bg-canvas text-fg">
-      <header className="sticky top-0 z-30 border-b border-border/50 bg-elevated/55 shadow-[0_1px_0_rgb(255_255_255/0.28)_inset,0_8px_24px_rgb(20_16_12/0.04)] backdrop-blur-xl backdrop-saturate-150 dark:border-white/5 dark:bg-elevated/45 dark:shadow-[0_1px_0_rgb(255_255_255/0.04)_inset,0_8px_26px_rgb(0_0_0/0.24)]">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-12 bg-[linear-gradient(180deg,rgb(255_255_255/0.42),rgb(255_255_255/0.10)_58%,rgb(255_255_255/0))] dark:bg-[linear-gradient(180deg,rgb(255_255_255/0.08),rgb(255_255_255/0.03)_54%,rgb(255_255_255/0))]" />
-        <div className="relative mx-auto flex h-14 w-full max-w-[1180px] items-center justify-between gap-4 px-4 sm:px-6">
-          <BrandMark />
-          <nav className="flex items-center gap-1.5 sm:gap-2">
-            <ThemeToggle />
-            <LandingAuthAction />
-          </nav>
-        </div>
-      </header>
+      <SiteHeader />
 
       <section className="mx-auto grid w-full max-w-[980px] flex-1 content-start gap-9 px-4 pb-16 pt-10 sm:px-6 sm:pb-24 sm:pt-8 md:content-center">
         <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
@@ -58,25 +47,7 @@ export default function Home() {
         <BoardPreview />
       </section>
 
-      <footer className="border-t border-border/60 dark:border-white/5">
-        <div className="mx-auto flex w-full max-w-[1180px] flex-col items-center gap-3 px-4 py-6 text-center text-xs text-faint sm:flex-row sm:justify-between sm:px-6">
-          <p>© 2026 vineiron. MIT licensed.</p>
-          <nav aria-label="Footer links" className="flex items-center gap-4">
-            <Link
-              href="https://vineiron.vercel.app/"
-              className="font-medium text-muted transition-colors hover:text-accent-text"
-            >
-              vineiron
-            </Link>
-            <Link
-              href="https://github.com/vineiron/leveling0"
-              className="font-medium text-muted transition-colors hover:text-accent-text"
-            >
-              github
-            </Link>
-          </nav>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }
