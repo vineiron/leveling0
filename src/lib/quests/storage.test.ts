@@ -3,6 +3,7 @@ import { ApiError } from "./errors";
 import {
   apiStore,
   askToMoveAfterSignIn,
+  BROWSER_FULL_MESSAGE,
   forgetLocal,
   localStore,
   readLocal,
@@ -178,6 +179,32 @@ describe("localStore", () => {
     vi.stubGlobal("window", undefined);
     expect(await localStore.list()).toEqual([]);
     await expect(localStore.remove("anything")).resolves.toBeUndefined();
+  });
+
+  it("says the browser is out of room instead of the browser's own error", async () => {
+    const kept = await localStore.create(draft);
+    storage.setItem = () => {
+      throw new DOMException(
+        "Setting the value of 'leveling0:items:v1' exceeded the quota.",
+        "QuotaExceededError",
+      );
+    };
+    await expect(localStore.create(draft)).rejects.toThrow(
+      BROWSER_FULL_MESSAGE,
+    );
+    await expect(
+      localStore.import([{ ...kept, id: "another" }]),
+    ).rejects.toThrow(BROWSER_FULL_MESSAGE);
+    expect(await localStore.list()).toEqual([kept]);
+  });
+
+  it("passes other storage errors through unchanged", async () => {
+    storage.setItem = () => {
+      throw new DOMException("The operation is insecure.", "SecurityError");
+    };
+    await expect(localStore.create(draft)).rejects.toThrow(
+      "The operation is insecure.",
+    );
   });
 });
 

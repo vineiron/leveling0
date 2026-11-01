@@ -2,7 +2,11 @@ import { eq, sql } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { db } from "@/db/client";
 import { quests } from "@/db/schema";
-import { BOARD_MAX_BYTES, QUEST_BASE_BYTES } from "@/lib/quests/limits";
+import {
+  BOARD_MAX_BYTES,
+  MAKE_ROOM,
+  QUEST_BASE_BYTES,
+} from "@/lib/quests/limits";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -47,7 +51,7 @@ export async function withinBudget<T>(
 export function boardFullResponse() {
   return NextResponse.json(
     {
-      error: `This would take your board past its ${BOARD_MAX_BYTES / 1_000_000} MB limit. Delete or shorten some quests to make room.`,
+      error: `This would take your board past its ${BOARD_MAX_BYTES / 1_000_000} MB limit. ${MAKE_ROOM}`,
     },
     { status: 409 },
   );
