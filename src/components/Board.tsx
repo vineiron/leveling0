@@ -61,6 +61,7 @@ export function Board() {
     update,
     remove,
     previewReorder,
+    undoPreview,
     commitMove,
     importQuests,
     mode,
@@ -519,6 +520,7 @@ export function Board() {
             onDragEnd={onDragEnd}
             onDragCancel={() => {
               pendingGroupsRef.current.clear();
+              undoPreview(beforeDragRef.current);
             }}
           >
             <div className="flex flex-1 flex-col gap-3 md:grid md:grid-cols-3">
