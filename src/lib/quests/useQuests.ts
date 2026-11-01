@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/lib/auth/AuthProvider";
+import { errorMessage, MESSAGES } from "./errors";
 import { applyReorder } from "./reorder";
 import { apiStore, localStore, type QuestStore } from "./storage";
 import type {
@@ -21,7 +22,7 @@ export type UseQuests = {
   update: (id: string, patch: Partial<QuestDraft>) => Promise<void>;
   remove: (id: string) => Promise<void>;
   previewReorder: (groups: ReorderPayload[]) => void;
-  commitMove: (id: string, to: QuestMove) => Promise<void>;
+  commitMove: (id: string, to: QuestMove, before: Quest[]) => Promise<void>;
   importQuests: (quests: Quest[]) => Promise<ImportResult>;
   mode: "local" | "remote";
 };
@@ -44,8 +45,7 @@ export function useQuests(): UseQuests {
       const next = await store.list();
       if (my === reqId.current) setItems(next);
     } catch (e) {
-      if (my === reqId.current)
-        setError(e instanceof Error ? e.message : String(e));
+      if (my === reqId.current) setError(errorMessage(e));
     } finally {
       if (my === reqId.current) setLoading(false);
     }
@@ -85,12 +85,15 @@ export function useQuests(): UseQuests {
   }, []);
 
   const commitMove = useCallback(
-    async (id: string, to: QuestMove) => {
+    async (id: string, to: QuestMove, before: Quest[]) => {
       try {
         await store.move(id, to);
       } catch (e) {
-        setError(e instanceof Error ? e.message : String(e));
+        setItems(before);
         await refresh();
+        setError(
+          e instanceof TypeError ? MESSAGES.moveFailed : errorMessage(e),
+        );
       }
     },
     [store, refresh],

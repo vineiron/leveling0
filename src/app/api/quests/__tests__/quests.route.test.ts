@@ -122,6 +122,7 @@ import { POST as movePOST } from "@/app/api/quests/[id]/move/route";
 import { DELETE, PATCH } from "@/app/api/quests/[id]/route";
 import { POST as importPOST } from "@/app/api/quests/import/route";
 import { GET, POST } from "@/app/api/quests/route";
+import { MESSAGES } from "@/lib/quests/errors";
 import { BOARD_MAX_BYTES } from "@/lib/quests/limits";
 
 const OWNER_ID = "11111111-1111-4111-8111-111111111111";
@@ -624,7 +625,7 @@ describe("board size limit", () => {
     const response = await create();
     expect(response.status).toBe(409);
     const body = await response.json();
-    expect(body.error).toContain(`${BOARD_MAX_BYTES / 1_000_000} MB`);
+    expect(body.error).toBe(MESSAGES.boardFull);
   });
 
   it("rejects an import that doesn't fit", async () => {

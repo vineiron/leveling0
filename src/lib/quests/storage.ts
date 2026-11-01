@@ -1,14 +1,15 @@
-import { SITE_NAME } from "@/lib/site";
-import { ApiError, toFriendlyMessages } from "./errors";
+import { ApiError, MESSAGES, toFriendlyMessages } from "./errors";
 import { fileQuest } from "./files";
-import { MAKE_ROOM } from "./limits";
 import { planMove } from "./move";
 import type { ImportResult, Quest, QuestDraft, QuestMove } from "./types";
 
 const LS_KEY = "leveling0:items:v1";
 const ASK_KEY = "leveling0:ask-to-move";
 
-export const BROWSER_FULL_MESSAGE = `This browser is out of room for ${SITE_NAME}. ${MAKE_ROOM}`;
+const STATUS_MESSAGES: Partial<Record<number, string>> = {
+  413: MESSAGES.tooBig,
+  429: MESSAGES.tooMany,
+};
 
 function uid() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -36,7 +37,7 @@ function writeLocal(quests: Quest[]) {
     window.localStorage.setItem(LS_KEY, JSON.stringify(quests));
   } catch (e) {
     if (e instanceof DOMException && e.name === "QuotaExceededError") {
-      throw new Error(BROWSER_FULL_MESSAGE);
+      throw new Error(MESSAGES.browserFull);
     }
     throw e;
   }
@@ -186,6 +187,8 @@ export const localStore: QuestStore = {
 
 async function jsonOrThrow(res: Response) {
   if (!res.ok) {
+    const known = STATUS_MESSAGES[res.status];
+    if (known) throw new ApiError([known], res.status);
     const text = await res.text().catch(() => "");
     let body: unknown = null;
     try {
