@@ -1,10 +1,14 @@
+import { SITE_NAME } from "@/lib/site";
 import { ApiError, toFriendlyMessages } from "./errors";
 import { fileQuest } from "./files";
+import { MAKE_ROOM } from "./limits";
 import { planMove } from "./move";
 import type { ImportResult, Quest, QuestDraft, QuestMove } from "./types";
 
 const LS_KEY = "leveling0:items:v1";
 const ASK_KEY = "leveling0:ask-to-move";
+
+export const BROWSER_FULL_MESSAGE = `This browser is out of room for ${SITE_NAME}. ${MAKE_ROOM}`;
 
 function uid() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -28,7 +32,14 @@ export function readLocal(): Quest[] {
 
 function writeLocal(quests: Quest[]) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(LS_KEY, JSON.stringify(quests));
+  try {
+    window.localStorage.setItem(LS_KEY, JSON.stringify(quests));
+  } catch (e) {
+    if (e instanceof DOMException && e.name === "QuotaExceededError") {
+      throw new Error(BROWSER_FULL_MESSAGE);
+    }
+    throw e;
+  }
 }
 
 export function forgetLocal(ids: string[]) {
