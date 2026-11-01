@@ -32,7 +32,11 @@ share it, put it online, or get a link for it.
    and share it, or asked you to improve theirs). Read
    [references/authoring.md](references/authoring.md) **before writing the
    HTML**. It covers what makes a shared single-file page good: link previews,
-   mobile layout, dark mode, and what this platform can and cannot do.
+   mobile layout, dark mode, and what this platform can and cannot do. If the
+   page's point is data (a report, dashboard, comparison, budget or results),
+   also read [references/data.md](references/data.md). Anything loaded from another
+   server (a library, a font, tiles, an embed) comes from
+   [references/toolkit.md](references/toolkit.md).
 
 ## Pre-publish checklist
 
@@ -50,17 +54,38 @@ Before the `POST`, confirm the file has:
 - [ ] No references to local files (`./style.css`, `img/photo.png`). The page
       is published alone, so anything not inlined is a 404.
 - [ ] No `http://` (non-https) sub-resources. The page is served over https and
-      browsers block mixed content.
+      browsers block mixed content. `xmlns="http://www.w3.org/2000/svg"` inside
+      an SVG is a name, not a request, so it's fine.
 - [ ] No fetch/XHR calls to servers that won't exist for visitors (e.g.
       `localhost`).
-- [ ] For pages you wrote: none of the AI-generated tells (em dashes sprinkled
-      through the prose, "it's not just X, it's Y", emoji headings, the
-      purple-to-blue hero gradient, leftover placeholder text). See
+- [ ] For pages you wrote: none of the AI-generated tells ("it's not just X,
+      it's Y", emoji headings, the purple-to-blue hero gradient, leftover
+      placeholder text). See
       [authoring.md](references/authoring.md#dont-let-it-read-as-ai-generated).
+- [ ] For pages you wrote: no em dash, en dash, middle dot, ellipsis character
+      or arrow. This must print nothing outside verbatim quotes and code
+      samples the page displays:
+      ```sh
+      grep -nE '—|–|·|…|→|&(mdash|ndash|middot|hellip|rarr);' PATH_TO_FILE.html
+      ```
+- [ ] For pages you wrote: no pure white or black as the page background or
+      body text, no box with both a fill and a border, links open in a new tab
+      only when the reader will want to come back, and read-only, link and
+      button each look different. See
+      [color](references/authoring.md#color-and-dark-mode) and
+      [links and controls](references/authoring.md#links-and-controls).
+- [ ] For pages you wrote: every external `<script>` and stylesheet is on
+      jsDelivr at an exact version with `integrity` and
+      `crossorigin="anonymous"`, ideally copied from
+      [toolkit.md](references/toolkit.md).
+- [ ] Every embed `<iframe>` (YouTube, Vimeo, Figma) has
+      `referrerpolicy="strict-origin-when-cross-origin"`. htmltolink sends no
+      referrer, and a YouTube embed without it shows "Error 153" instead of the
+      video.
 
 For mode 1 (user's existing file), don't fix these silently. Publish, then
-mention anything that will visibly break (local file refs, mixed content) and
-offer to fix it. A missing favicon isn't a break, since the page just wears
+mention anything that will visibly break (local file refs, mixed content, an
+embed without `referrerpolicy`) and offer to fix it. A missing favicon isn't a break, since the page just wears
 htmltolink's mark, so offer it as a one-line improvement rather than adding it
 unasked.
 
@@ -90,26 +115,97 @@ The response is JSON:
   "manage_url": "https://htmltolink.com/m/aBcD...",
   "manage_token": "aBcD...",
   "expires_at": "2026-11-11T00:00:00.000Z",
-  "claim_url": "https://htmltolink.com/m/aBcD...#keep"
+  "claimed": false,
+  "size_limit": 10485760
 }
 ```
 
+`claimed` is `true` when the publish carried an API key (see below): the page is
+already on the user's account. When it is `false`, the user saves the page from
+the manage link: Google sign-in, then "Add to my account".
+
+## API key (optional, for users with an account)
+
+Anonymous publish always works. With a key (the user creates one at
+https://htmltolink.com/dashboard/keys, it starts with `htk_`), the page lands on
+their dashboard immediately, with no claim step. The key reaches you one way:
+the user gives it to you in the conversation, by pasting it or saying "with my
+htmltolink key". Use it as the Bearer token for every htmltolink call in this
+conversation, where `YOUR_KEY` appears below. Do not write it to any file,
+environment variable, memory or config, and do not repeat it back in your
+replies; call it "your key". It is gone when the conversation is.
+
+```sh
+curl -sS -X POST https://htmltolink.com/v1/pages \
+  -H 'Content-Type: text/html' \
+  -H 'Authorization: Bearer YOUR_KEY' \
+  --data-binary @PATH_TO_FILE.html
+```
+
+Do not invent a key, and do not ask for one unprompted. With no key, publish
+anonymously and point the user to the manage link to save the page instead.
+
+Tags belong to the user. They are how the dashboard is organized (clients,
+projects, `draft`), and only the user knows that vocabulary. Pass tags only
+when the user named them in this conversation ("tag it client-acme", or a tag
+they already used for a related page in this same conversation). Never derive
+tags from what the page is or looks like: `landing`, `mock`, `invoice` and the
+like are noise on their dashboard, and every invented tag becomes a filter
+they have to clean up. With no instruction, publish untagged; the dashboard
+has a "no tags" filter, so the user tags pages there in their own words.
+
+When the user did name tags, send them as lowercase slugs, max 10:
+
+```sh
+  -H 'X-Page-Tags: client-acme,q4-launch'
+```
+
+Claim an older page onto the account (you need the page id and its manage token
+from the original publish response in the conversation):
+
+```sh
+curl -sS -X POST https://htmltolink.com/v1/pages/PAGE_ID/claim \
+  -H 'Authorization: Bearer YOUR_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{"manage_token":"MANAGE_TOKEN"}'
+```
+
+Set or replace a page's tags later:
+
+```sh
+curl -sS -X POST https://htmltolink.com/v1/pages/PAGE_ID/tags \
+  -H 'Authorization: Bearer YOUR_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{"tags":["client-acme","q4-launch"]}'
+```
+
+Same rule as at publish: only tags the user asked for. This replaces the whole
+list, so include the ones they want to keep.
+
 ## Report back to the user
 
-Show the user two things clearly, and label them:
+Show the user these clearly, and label them:
 
 1. **The public link** (`url`): "Share this with anyone."
 2. **The manage link** (`manage_url`): "Keep this private. It's the only way to
    update or delete your page. Anyone who has it can edit or delete the page."
+3. **Saving it** (when `claimed` is `false`): "Open the manage link and sign in
+   with Google to add this page to your account, or save an email there. Either
+   way it stops expiring and can't get lost." This is the only durable trail:
+   once this conversation scrolls away, the manage link is gone with it, so
+   encourage doing it now. Skip this line when `claimed` is `true` (already
+   owned via API key).
 
 Tell them the page stays up as long as people open it (pages unopened for ~90
-days are cleaned up), and that they can update it in place or delete it from the
-manage link.
+days are cleaned up; pages on an account or with a saved email are exempt), and
+that they can update it in place or delete it from the manage link.
 
 ## Update or delete a page
 
 Both use two values from the publish response: `id` (in the URL) and
-`manage_token` (as a Bearer token).
+`manage_token` (as a Bearer token). If the page was published with the user's
+API key, the key works in place of the manage token for every call below, so
+nothing needs to be kept from the publish response but the `id`.
 
 Update in place (same public URL, new content):
 
@@ -126,26 +222,60 @@ curl -sS -X DELETE https://htmltolink.com/v1/pages/PAGE_ID \
   -H 'Authorization: Bearer MANAGE_TOKEN'
 ```
 
+Let search engines list a page (or stop them). Every page is served `noindex`
+by default, owned or not; this is the owner's per-page opt-in, so only do it
+when the user says they want the page findable in search. Needs the API key:
+
+```sh
+curl -sS -X POST https://htmltolink.com/v1/pages/PAGE_ID/indexable \
+  -H 'Authorization: Bearer YOUR_KEY' \
+  -H 'Content-Type: application/json' -d '{"on":true}'
+```
+
+Turning it off again (`{"on":false}`) makes search engines drop the page on
+their next crawl. Releasing a page turns it off as well.
+
+Release a page from the user's account (it stays online, becomes anonymous
+again, and leaves their dashboard). Only when the user asks for exactly that;
+needs the API key:
+
+```sh
+curl -sS -X POST https://htmltolink.com/v1/pages/PAGE_ID/release \
+  -H 'Authorization: Bearer YOUR_KEY'
+```
+
 ## Rules
 
 - Publish exactly **one self-contained HTML file** per page. Inline or embed CSS,
   JS, and images. Multi-file sites and external local files are not supported.
-- Anonymous uploads are capped at **10 MB**. If the file is larger, tell the user
-  to publish it from the website (https://htmltolink.com) for a higher limit, or
-  to shrink embedded images.
+- Anonymous uploads are capped at **10 MB**; with an API key the cap is **25 MB**,
+  the same as the website. If the file is larger than the cap you have, tell the
+  user to publish it from the website (https://htmltolink.com), set up a key, or
+  shrink embedded images.
 - Only publish content the user has the right to publish. The service removes
   phishing, malware, and other abuse.
+- Never tag a page the user did not ask to tag. Tags are theirs, not a place
+  for your description of the page.
 
 ## Troubleshoot predictably
 
-- **`{"error":{"code":"file_too_large"}}`** → the file exceeds 10 MB. Suggest the
-  website (25 MB with a quick human check) or shrinking embedded assets.
-- **`{"error":{"code":"unsupported_content_type"}}`** → the body wasn't recognized
+- **`{"error":{"code":"file_too_large"}}`**: the file exceeds the cap (10 MB
+  anonymous, 25 MB with a key). Suggest a key, the website, or shrinking embedded
+  assets.
+- **`{"error":{"code":"unsupported_content_type"}}`**: the body wasn't recognized
   as HTML. Make sure you sent the raw HTML with `Content-Type: text/html` (or a
   `.html` file), not JSON or a multipart form without a `file` field.
-- **`{"error":{"code":"content_blocked"}}`** → the page looks like a phishing /
-  credential-harvest page and was rejected. Do not retry; tell the user.
-- **`{"error":{"code":"rate_limited"}}`** → too many publishes from this network.
+- **`{"error":{"code":"content_blocked"}}`** (HTTP 451): the page was refused.
+  Three causes, and the `message` says which: it looks like a phishing or
+  credential-harvest page; its content was removed for abuse before and cannot be
+  republished; or it links to a site flagged for phishing or malware, in which
+  case the `hint` names the exact URL. Do not retry. Tell the user, and pass on
+  the `hint` when there is one: a flagged link is usually something they can
+  simply remove.
+- **`{"error":{"code":"blocked"}}`**: this network was blocked after an abuse
+  takedown (HTTP 403). Do not retry; tell the user, and pass on the `hint`
+  (it names the ops email for appeals).
+- **`{"error":{"code":"rate_limited"}}`**: too many publishes from this network.
   Respect the `Retry-After` response header before trying again.
-- **`{"error":{"code":"invalid_manage_token"}}`** on update/delete → the token or
+- **`{"error":{"code":"invalid_manage_token"}}`** on update/delete: the token or
   page id is wrong. Re-check both from the original publish response.

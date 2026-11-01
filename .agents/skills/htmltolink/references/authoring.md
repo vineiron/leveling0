@@ -94,7 +94,7 @@ default because it costs one line and no request, not because it's the ceiling.
 Design for a ~375px-wide screen, then let it breathe on desktop:
 
 - Wrap content in a container: `max-width: 42rem; margin: 0 auto;
-  padding: 1.5rem;` (wider, ~64–72rem, for dashboards/tables).
+  padding: 1.5rem;` (wider, ~64 to 72rem, for dashboards/tables).
 - Base font size 16px minimum; line-height around 1.6 for body text.
 - The page body must never scroll horizontally. Anything intrinsically wide
   (tables, code blocks, big diagrams) goes inside its own `overflow-x: auto`
@@ -109,21 +109,42 @@ from a chat at night in light-blast white feels broken:
 
 ```css
 :root {
-  --bg: #ffffff; --fg: #1a1a1a; --muted: #6b7280;
-  --accent: #2563eb; --surface: #f4f4f5;
+  --bg: #f7f7f5; --fg: #1a1a1a; --muted: #6b7280;
+  --surface: #ffffff; --line: #e6e6e2;
+  --accent: #2563eb; --on-accent: #ffffff;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #111114; --fg: #e7e7ea; --muted: #9ca3af;
-    --accent: #60a5fa; --surface: #1c1c21;
+    --surface: #1c1c21; --line: #27272d;
+    --accent: #60a5fa; --on-accent: #111114;
   }
 }
 body { background: var(--bg); color: var(--fg); }
 ```
 
 Use the tokens everywhere; never hardcode a color that only works in one theme.
+`--surface` is the raised layer (cards, panels) and `--on-accent` is the label
+on a solid `--accent` fill, which is why it flips to dark in the dark theme.
+
+**No pure white or pure black where the eye rests.** `#fff` text on a dark page
+glows at the edges and tires the eye; `#000` text on `#fff` is the same glare in
+reverse. The page background and body text stay off-white and off-black, as in
+the recipe. Tint `--bg` toward the page's subject color if it suits. `#fff` is
+fine for a raised surface on the off-white page and for a label on a solid
+accent, never for the page itself or for body text on dark.
+
+**One edge per element.** A box gets a fill or a border, not both. In dark
+mode, prefer the fill: a lighter `--surface` on `--bg` already lifts it. Light
+lines on a dark page glow, and a row of outlined boxes side by side (chips,
+tabs, cards) turns into a stack of bright parallel edges that is hard to look
+at. Keep borders for lines that mean something (inputs, table rules, a
+divider), and color them with `--line` only, never an invented gray or
+`rgba(255,255,255,.1)`.
+
 A page with a deliberate single look (e.g. a dark poster) may skip the media
-query but must still set background and text colors explicitly.
+query but must still set background and text colors explicitly, and the rules
+above still apply.
 
 ## Typography
 
@@ -137,6 +158,48 @@ A Google Fonts `<link>` is fine when the page wants a distinct voice (one
 family, two weights, always with a fallback stack), but it's an external
 dependency; the system stack is the safe default.
 
+## Links and controls
+
+### New tab or same tab
+
+Ask one question per link: will the reader want to come back to this page
+after following it?
+
+- **Yes: new tab** (`target="_blank" rel="noopener"`). References read
+  alongside the page: a map pin in an itinerary, a source, a menu, a doc. On a
+  one-URL page, most outbound links are this kind.
+- **No: same tab.** The hand-off where the page's job ends: the RSVP form,
+  "buy tickets", "open the app".
+- **Never a new tab:** in-page anchors (`#day-2`), `mailto:`, `tel:`,
+  downloads. `_blank` does nothing useful on these and can leave an empty tab
+  behind.
+
+### The look follows the function
+
+The style is free. What it must do is tell the reader what will happen before
+they touch anything. From the reader's side there are three functions:
+
+- **Read only:** sections, cards, labels, tags.
+- **Goes somewhere:** links.
+- **Does something here:** buttons that copy, toggle, filter or expand.
+
+Give each one its own look, distinct from the other two, and keep it the same
+across the whole page. Then:
+
+- Nothing read-only borrows an interactive cue. No hover lift, no pointer
+  cursor, no button shape on a static card or label. A card that lifts on
+  hover and goes nowhere is a broken promise, and a common generated-page
+  tell.
+- Everything interactive shows it, with a hover and focus state and a
+  treatment the static parts don't use.
+- A row of identical outlined boxes says nothing about what they do: tabs,
+  filters, links, or labels? Pick the treatment for the job. Nav and tabs as
+  text with the active item filled or underlined, filters as toggle buttons,
+  labels as plain small text.
+- The main call to action may be an `<a>` styled as a button ("Book a table"):
+  the reader sees it as the page's main action. The look follows what the
+  reader expects to happen, not the tag.
+
 ## Don't let it read as AI-generated
 
 A shared page is judged in about two seconds. Readers now recognize the house
@@ -145,10 +208,21 @@ before a word gets read. The tells are specific and easy to avoid.
 
 **In the writing:**
 
-- **The em dash.** This is the loudest tell of the moment. One per page is
-  plenty; most pages need none. A comma, a full stop, or a colon does the job,
-  and the sentence usually improves. Watch for the paired-dash aside in
-  particular, since that is the construction that gives it away.
+- **Typographic glyphs: none, anywhere.** No em dash (—), en dash (–), middle
+  dot (·), ellipsis character (…) or arrow (→). Not in prose, headings,
+  buttons, footers or CSS `content:` strings, and not as entities (`&mdash;`
+  `&ndash;` `&middot;` `&hellip;` `&rarr;`). The em dash is the loudest tell of
+  the moment, and the others travel with it. Instead:
+  - An aside or a break: a comma, a full stop, a colon, or parentheses. The
+    sentence usually improves.
+  - A range: "9 to 5", "Mon to Fri", or a plain hyphen in tight spots
+    ("2024-2026").
+  - A meta line ("Oct 29, 5 min read"): commas, or separate items with
+    spacing (`display: flex; gap`), never a glyph between them.
+  - A link or button: the words carry it. "Read the plan", not "Read the
+    plan →".
+
+  Verbatim quotes and code samples the page displays stay as written.
 - **"It's not just X, it's Y."** Same for "not only... but also". State what the
   thing is and stop.
 - **Vocabulary that only appears in generated text:** delve, leverage, robust,
@@ -165,7 +239,7 @@ before a word gets read. The tells are specific and easy to avoid.
 
 **In the design:**
 
-- **The purple-to-blue hero gradient.** `#667eea → #764ba2` and its neighbors
+- **The purple-to-blue hero gradient.** `#667eea` to `#764ba2` and its neighbors
   are instantly recognizable as machine-chosen. Pick colors that come from the
   page's subject.
 - **Emoji as section headings or bullet markers** (🚀 ✨ 🎯 next to every
@@ -192,22 +266,53 @@ The page is published as one file with nothing next to it:
   (compress, resize; prefer SVG for graphics).
 - Every external URL must be `https://`. The page is served over https and
   browsers silently block `http://` sub-resources.
-- Icons: inline SVG or emoji, not an icon-font CDN.
+- Icons: inline SVG (Lucide, see `toolkit.md`) or emoji, not an icon-font CDN.
 
 ## Interactivity: client-side only
 
-There is no backend. What works, and what to reach for:
+There is no backend, but the browser is a full app runtime. What works, and
+what to reach for:
 
+- **Pages whose point is data** (reports, dashboards, comparisons, budgets,
+  results): read [data.md](data.md) first.
+- **Anything from another server** (a library, a font, map tiles, an embed,
+  live data): take it from [toolkit.md](toolkit.md). Every tag there is pinned,
+  hash-checked and tested on htmltolink. Don't pull a framework for what 30
+  lines of vanilla JS can do.
+- **Built-in elements before scripts:** `<details>` for sections a reader can
+  fold, `<dialog>` for a detail view, the `popover` attribute for a small menu,
+  `<input type="range">` with `<output>` for a what-if number, `<meter>` for a
+  value within a range. Keyboard and screen-reader support come free.
 - **State that persists per visitor** (a checklist, a filter, a draft):
   `localStorage`, with every read/write in `try/catch` and the page rendering
   correctly when storage is empty or unavailable.
-- **Libraries**: load from a major CDN (cdnjs, jsdelivr), pinned to an exact
-  version, script tag placed before the inline script that uses it. Don't pull
-  a framework for what 30 lines of vanilla JS can do.
-- **Charts/diagrams**: inline SVG, or a pinned CDN chart library.
-- The page should still show its content if JS fails to load. Render the
-  content in HTML and use JS to enhance it, not to construct it, whenever
-  practical.
+- **Views a link can open:** when the page has tabs, filters or variants, keep
+  the current one in the query string, so "look at option B" opens option B.
+  The `#` stays free for section links.
+  ```js
+  const state = new URLSearchParams(location.search);
+  function setState(key, value) {
+    state.set(key, value);
+    history.replaceState(null, '', '?' + state + location.hash);
+    render();
+  }
+  const option = state.get('option') ?? 'a';
+  ```
+- **Copy buttons** (`navigator.clipboard.writeText`) next to anything readers
+  will paste elsewhere: an address, a command, a code.
+- **Print:** plans and reports get saved as PDF. Give them print styles:
+  ```css
+  @media print {
+    nav, button, .no-print { display: none !important; }
+    section, figure, table, .chart { break-inside: avoid; }
+  }
+  ```
+- **Motion that stops:** a transition answers a click and ends. Nothing loops
+  (pulses, shimmers, spinners), and transitions sit inside
+  `@media (prefers-reduced-motion: no-preference)`.
+- The page still shows its content if a CDN fails: text, headline numbers and
+  tables come from the HTML itself or from inline script reading the page's
+  own data, never from a library. Libraries add charts and interaction on top.
 
 **What the platform cannot do.** Design around these, don't ship them broken:
 
@@ -219,6 +324,8 @@ There is no backend. What works, and what to reach for:
 - No shared or server state: nothing one visitor does is visible to another.
   Don't build a poll or counter that pretends otherwise.
 - No secrets: everything in the file is public, including anything in the JS.
+- No background threads (Web Workers): libraries that need one break. Every
+  pick in `toolkit.md` works without.
 
 ## Accessibility floor
 
