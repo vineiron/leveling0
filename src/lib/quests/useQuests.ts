@@ -22,6 +22,7 @@ export type UseQuests = {
   update: (id: string, patch: Partial<QuestDraft>) => Promise<void>;
   remove: (id: string) => Promise<void>;
   previewReorder: (groups: ReorderPayload[]) => void;
+  undoPreview: (before: Quest[]) => void;
   commitMove: (id: string, to: QuestMove, before: Quest[]) => Promise<void>;
   importQuests: (quests: Quest[]) => Promise<ImportResult>;
   mode: "local" | "remote";
@@ -84,6 +85,10 @@ export function useQuests(): UseQuests {
     setItems((prev) => applyReorder(prev, groups));
   }, []);
 
+  const undoPreview = useCallback((before: Quest[]) => {
+    setItems(before);
+  }, []);
+
   const commitMove = useCallback(
     async (id: string, to: QuestMove, before: Quest[]) => {
       try {
@@ -118,6 +123,7 @@ export function useQuests(): UseQuests {
       update,
       remove,
       previewReorder,
+      undoPreview,
       commitMove,
       importQuests,
       mode,
@@ -132,6 +138,7 @@ export function useQuests(): UseQuests {
       update,
       remove,
       previewReorder,
+      undoPreview,
       commitMove,
       importQuests,
       mode,
